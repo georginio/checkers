@@ -7,8 +7,21 @@ export const saveUsername = ({ username }) => dispatch =>
             dispatch(createUser(username))
         })
         .catch(err => console.log(err))
-    
+
+export const fetchActiveUsers = () => dispatch =>
+    axios   
+        .get('http://localhost:3300/api/users/all')
+        .then(({data}) => {
+            dispatch(saveActiveUsers(data.users))
+        })
+        .catch(err => console.log(err))
+        
 export const createUser = username => ({
     type: 'SAVE_USERNAME',
     payload: { username }
+})
+
+export const saveActiveUsers = users => ({
+    type: 'POPULATE_USERS',
+    payload: users
 })

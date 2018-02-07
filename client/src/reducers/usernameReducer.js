@@ -1,5 +1,4 @@
-export default function userReducer (state = {}, action) {
- 
+export default function usernameReducer (state = '', action) {
     switch (action.type) {
         case 'SAVE_USERNAME': 
             return action.payload

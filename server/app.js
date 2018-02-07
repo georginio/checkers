@@ -44,6 +44,14 @@ app.post('/api/username/check', (req, res) => {
     
 });
 
+app.get('/api/users/all', (req, res) => {
+    client.lrange('users', 0, -1, (err, reply) => {
+        if (err)
+            return res.status(500).send('Internal server error');
+        res.status(200).json({ users: reply });            
+    });
+});
+
 app.get('*', (req, res) => res.send('olaa negro'));
 
 initIO(io, client);

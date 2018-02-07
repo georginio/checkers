@@ -3,6 +3,8 @@ import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 
+import { fetchActiveUsers } from '../../actions/userActions'
+
 import Form from './components/Form'
 
 const styles = {
@@ -14,8 +16,15 @@ const styles = {
 
 class Dashboard extends Component {
 
+    componentDidMount() {
+        let { activeUsers } = this.props
+
+        if (!activeUsers)
+            this.props.fetchActiveUsers()
+    }
+
     render() {
-        let { classes, username } = this.props;
+        let { classes, username } = this.props
 
         let bgStyle = {
            backgroundColor: username ? '#ffffff' : ''
@@ -35,8 +44,15 @@ class Dashboard extends Component {
     }
 }
 
-const mstp = ({ user }) => ({
-    username: user.username
+const mstp = ({ username, activeUsers }) => ({
+    username,
+    activeUsers
 })
 
-export default  connect(mstp)(withStyles(styles)(Dashboard))
+const mdtp = dispatch => ({
+    fetchActiveUsers: () => dispatch(fetchActiveUsers())
+})
+
+export default  connect(mstp, mdtp)(
+    withStyles(styles)(Dashboard)
+)
