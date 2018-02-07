@@ -1,0 +1,11 @@
+.app-wrapper {
+    height: 100vh;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background-color: #e1e1e1;
+}
+
+.app-wrapper h1 {
+    margin: 0;
+}
