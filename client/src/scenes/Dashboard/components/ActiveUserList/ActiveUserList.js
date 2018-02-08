@@ -1,0 +1,56 @@
+import React from 'react'
+import List, { ListItem, ListItemText, ListItemSecondaryAction } from 'material-ui/List'
+import { withStyles } from 'material-ui/styles'
+import IconButton from 'material-ui/IconButton'
+import PlayArrow from 'material-ui-icons/PlayArrow'
+
+import TypographyTheme from './TypographyTheme'
+
+const styles = {
+    root: {
+        border: '1px solid #e3e3e3',
+        backgroundColor: '#ffffff',
+        maxHeight: '90vh',
+        overflow: 'hidden'
+    },
+    list: {
+        maxHeight: '80vh',
+        overflow: 'auto',
+        borderTop: '2px solid #e6e6e6'
+    },
+    heading: {
+        color: '#2196F3'
+    },
+    pinky: {
+        color: '#7986CB',
+        fontSize: '1.2rem'
+    }
+}
+
+const ActiveUserList = ({ users, classes }) =>
+    <div className={classes.root}>
+        <h3 className={classes.heading}>Available users</h3>
+        <List className={classes.list}>
+            {users.map((user, index) => 
+                <ListItem 
+                    key={index}
+                    button
+                >
+                    <ListItemText
+                        disableTypography
+                        primary={
+                            <TypographyTheme value={user} />
+                        } 
+                        className={classes.listItem} 
+                    />
+                    <ListItemSecondaryAction>
+                        <IconButton aria-label="Comments">
+                            <PlayArrow className={classes.pinky} />
+                        </IconButton>
+                    </ListItemSecondaryAction>
+                </ListItem>    
+            )}
+        </List>
+    </div>
+
+export default withStyles(styles)(ActiveUserList)
