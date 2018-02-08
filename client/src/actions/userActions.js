@@ -15,7 +15,12 @@ export const fetchActiveUsers = () => dispatch =>
             dispatch(saveActiveUsers(data.users))
         })
         .catch(err => console.log(err))
-        
+    
+export const addActiveUser = username => ({
+    type: 'ADD_ACTIVE_USER',
+    payload: username
+})
+
 export const createUser = username => ({
     type: 'SAVE_USERNAME',
     payload: { username }

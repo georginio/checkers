@@ -3,10 +3,11 @@ import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 
-import { fetchActiveUsers } from '../../actions/userActions'
+import { fetchActiveUsers, addActiveUser } from '../../actions/userActions'
+import { emitNewUser, subscribeToNewUser } from '../../socket'
 
-import Form from './components/Form'
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
+import FormHOC from './components/FormHOC/FormHOC'
 
 const styles = {
     dashboard: {
@@ -20,38 +21,36 @@ const styles = {
 
 class Dashboard extends Component {
 
+    constructor(props) {
+        super(props)
+
+        subscribeToNewUser((err, username) => {
+            this.props.addActiveUser(username)
+        })
+    }
+
     componentDidMount() {
-        let { activeUsers } = this.props
+        let { activeUsers, username } = this.props
 
         if (!activeUsers)
             this.props.fetchActiveUsers()
+        
+        if (username)
+            emitNewUser(username)
     }
 
     render() {
         let { classes, username } = this.props
 
-        let bgStyle = {
-           backgroundColor: username ? '#e6e6e6' : ''
-        }    
-
         return (
-            <div className={classes.dashboard} style={bgStyle}>
+            <div className={classes.dashboard}>
                 <Grid>
                     <Row middle="xs" center="xs">
-                    { !username ? 
-                            <Col xs={6}>
-                                <Form />
+                        <Col stylee={styles.content} xs={12}>
+                            <Col xs={4}>
+                                <ActiveUserList users={this.props.activeUsers} />
                             </Col>
-                        :   
-                            <Col className={classes.content} xs={12}>
-                                <Col xs={4}>
-                                    <ActiveUserList users={this.props.activeUsers} />
-                                </Col>
-                                <Col xs={8}>
-                                    {/* there will be chat for everyoneee <ActiveUserList /> */}
-                                </Col>
-                            </Col> 
-                    }
+                        </Col> 
                     </Row> 
                 </Grid>
             </div>
@@ -65,9 +64,10 @@ const mstp = ({ username, activeUsers }) => ({
 })
 
 const mdtp = dispatch => ({
-    fetchActiveUsers: () => dispatch(fetchActiveUsers())
+    fetchActiveUsers: () => dispatch(fetchActiveUsers()),
+    addActiveUser: (username) => dispatch(addActiveUser(username))
 })
 
-export default  connect(mstp, mdtp)(
-    withStyles(styles)(Dashboard)
-)
+Dashboard = withStyles(styles)(Dashboard)
+
+export default connect(mstp, mdtp)(FormHOC(Dashboard))

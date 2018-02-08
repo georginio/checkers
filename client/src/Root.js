@@ -5,6 +5,8 @@ import { Provider } from 'react-redux'
 import Dashboard from './scenes/Dashboard'
 import App from './App'
 
+import FormHOC from './scenes/Dashboard/components/FormHOC/FormHOC'
+
 const Root = ({ store }) =>
     <Provider store={store}>
         <Router>

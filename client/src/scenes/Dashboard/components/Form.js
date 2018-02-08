@@ -31,7 +31,7 @@ class Form extends Component {
             submitting, 
             invalid, 
             saveUsername 
-        } = this.props;
+        } = this.props
         
         return (
             <form onSubmit={handleSubmit(saveUsername)} name="usernameForm" className={classes.form}>
