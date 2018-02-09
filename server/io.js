@@ -7,8 +7,8 @@ module.exports = (io, users, redisClient) => {
         });
 
         socket.on('new-user', (username) => {
-            let user = { username, id: socket.id }
-            users.push(user)
+            let user = { username, id: socket.id };
+            users.push(user);
             socket.broadcast.emit('new-user', user);
         });
 
@@ -16,7 +16,7 @@ module.exports = (io, users, redisClient) => {
             let index = users.findIndex(user => user.id === socket.id);
 
             if (index !== -1) {
-                socket.broadcast.emit('logout', users[index].id)
+                socket.broadcast.emit('logout', users[index].id);
                 users.splice(index, 1);
             }
 
