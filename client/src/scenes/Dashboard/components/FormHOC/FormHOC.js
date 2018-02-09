@@ -1,6 +1,5 @@
 import { Grid, Col, Row } from 'react-flexbox-grid'
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
 
 import Form from '../Form'
 
@@ -9,14 +8,10 @@ const styles = {
     height: '100vh',
 }
 
-function FormHOC (WrappedComponent) {
-    
-    return class FormHOC extends Component {
-        constructor(props) {
-            super(props)
-        }
+const FormHOC = WrappedComponent =>
+    class FormHOC extends Component {
         render () {
-            let { classes, username } = this.props; 
+            let { username } = this.props
 
             if (!username)
                 return (
@@ -34,7 +29,5 @@ function FormHOC (WrappedComponent) {
             return (<WrappedComponent {...this.props} />)
         }
     }
-}
 
 export default FormHOC
-

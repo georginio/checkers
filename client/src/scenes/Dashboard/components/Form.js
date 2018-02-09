@@ -9,6 +9,8 @@ import RenderedTextField from './RenderedTextField'
 import { asyncValidate, validate } from './validation'
 import { saveUsername } from '../../../actions/userActions'
 
+import { emitNewUser } from '../../../socket'
+
 const styles = {
     button: {
         marginTop: '5px'
@@ -22,6 +24,18 @@ const styles = {
 } 
 
 class Form extends Component {
+
+    constructor(props) {
+        super(props)
+
+        this.submitUsername = this.submitUsername.bind(this)
+    }
+
+    submitUsername(values) {
+        emitNewUser(values.username)
+        this.props.saveUsername(values.username)
+    }
+
     render () {
         
         let { 
@@ -30,11 +44,10 @@ class Form extends Component {
             pristine, 
             submitting, 
             invalid, 
-            saveUsername 
         } = this.props
         
         return (
-            <form onSubmit={handleSubmit(saveUsername)} name="usernameForm" className={classes.form}>
+            <form onSubmit={handleSubmit(this.submitUsername)} name="usernameForm" className={classes.form}>
                 <h3>Please type your Username!</h3>
                 <Field name="username" label="Username" component={RenderedTextField} />
                 <Button 
@@ -51,7 +64,7 @@ class Form extends Component {
 }
 
 const dispatchToProps = dispatch => ({
-    saveUsername: values => dispatch(saveUsername(values))
+    saveUsername: username => dispatch(saveUsername(username))
 })
 
 Form = withStyles(styles)(Form)

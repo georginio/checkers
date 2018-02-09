@@ -1,4 +1,4 @@
-module.exports = (io, redisClient) => {
+module.exports = (io, users, redisClient) => {
 
     io.on('connection', (socket) => {
 
@@ -6,15 +6,21 @@ module.exports = (io, redisClient) => {
             socket.broadcast.emit('message', message);
         });
 
-        socket.on('new-user', (user) => {
-
-            redisClient.rpush(['users', user], (err, reply) => {
-                if (!err)
-                    socket.broadcast.emit('new-user', user);
-            });
+        socket.on('new-user', (username) => {
+            let user = { username, id: socket.id }
+            users.push(user)
+            socket.broadcast.emit('new-user', user);
         });
 
-        socket.on('disconnect', () => console.log(socket.id, 'was disconnected'));
+        socket.on('disconnect', () => {
+            let index = users.findIndex(user => user.id === socket.id);
+
+            if (index !== -1) {
+                socket.broadcast.emit('logout', users[index].id)
+                users.splice(index, 1);
+            }
+
+        });
         
     });
 }

@@ -3,8 +3,8 @@ import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 
-import { fetchActiveUsers, addActiveUser } from '../../actions/userActions'
-import { emitNewUser, subscribeToNewUser } from '../../socket'
+import { fetchActiveUsers, addActiveUser, userLogout } from '../../actions/userActions'
+import { subscribeToNewUser, subscribeToUserLogOut } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import FormHOC from './components/FormHOC/FormHOC'
@@ -24,29 +24,30 @@ class Dashboard extends Component {
     constructor(props) {
         super(props)
 
-        subscribeToNewUser((err, username) => {
-            this.props.addActiveUser(username)
+        subscribeToNewUser((err, user) => {
+            this.props.addActiveUser(user)
+        })
+
+        subscribeToUserLogOut((err, id) => {
+            this.props.userLogout(id)
         })
     }
 
     componentDidMount() {
-        let { activeUsers, username } = this.props
+        let { activeUsers } = this.props
 
         if (!activeUsers)
             this.props.fetchActiveUsers()
-        
-        if (username)
-            emitNewUser(username)
     }
 
     render() {
-        let { classes, username } = this.props
+        let { classes } = this.props
 
         return (
             <div className={classes.dashboard}>
                 <Grid>
                     <Row middle="xs" center="xs">
-                        <Col stylee={styles.content} xs={12}>
+                        <Col stylee={classes.content} xs={12}>
                             <Col xs={4}>
                                 <ActiveUserList users={this.props.activeUsers} />
                             </Col>
@@ -65,7 +66,8 @@ const mstp = ({ username, activeUsers }) => ({
 
 const mdtp = dispatch => ({
     fetchActiveUsers: () => dispatch(fetchActiveUsers()),
-    addActiveUser: (username) => dispatch(addActiveUser(username))
+    addActiveUser: (user) => dispatch(addActiveUser(user)),
+    userLogout: (id) => dispatch(userLogout(id))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

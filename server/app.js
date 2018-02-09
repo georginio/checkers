@@ -11,47 +11,64 @@ const port = 3300;
 const server = app.listen(port, () => console.log('app is running on a port ' + port));
 const io = socket.listen(server);
 const client = redis.createClient();
-client.on('connect', () => console.log('redis connected...'));
+
+const activeUsers = [];
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 
+client.on('connect', () => console.log('redis connected...'));
+
 app.post('/api/username/save', (req, res) => {
     let { username } = req.body;
 
-    client.rpush(['users', username], (err, reply) => {
-        if (err)
-            return res.status(500).send('Internal server error');
-        res.status(200).send('username saved succesfully');
-    });
+    // console.log(username, 'daf is user and what in api', '\n\n\n')
+
+    // client.rpush(['users', username], (err, reply) => {
+    //     if (err)
+    //         return res.status(500).send('Internal server error');
+    //     res.status(200).send('username saved succesfully');
+    // });
     
 });
 
 app.post('/api/username/check', (req, res) => {
     let { username } = req.body;
-    
-    client.lrange('users', 0, -1, (err, reply) => {
+    let user = activeUsers.find(user => user.username === username);
 
-        if (err) 
-            return res.status(500).send('Internal server error');
+    if (user)
+        return res.status(200).json({ exists: true });
+    
+    return res.status(200).json({ exists: false });
+    // client.lrange('users', 0, -1, (err, reply) => {
+
+    //     if (err) 
+    //         return res.status(500).send('Internal server error');
         
-        if (reply && reply.length > 0 && reply.includes(username))
-            return res.status(200).json({ exists: true });
+    //     if (reply && reply.length > 0 && reply.includes(username))
         
-        return res.status(200).json({ exists: false });
-    });
+    // });
     
 });
 
 app.get('/api/users/all', (req, res) => {
-    client.lrange('users', 0, -1, (err, reply) => {
-        if (err)
-            return res.status(500).send('Internal server error');
-        res.status(200).json({ users: reply });            
-    });
+    res.status(200).json({ users: activeUsers });            
+    // client.lrange('users', 0, -1, (err, reply) => {
+    //     if (err)
+    //         return res.status(500).send('Internal server error');
+    // });
 });
+
+app.delete('/api/users/all', (req, res) => {
+    activeUsers = [];
+    // client.del('users', (err, reply) => {
+    //     if (err)
+    //         return res.status(500).send('Internal server error');
+    //     res.status(203).send('Users succsessfully deleted!');        
+    // })
+})
 
 app.get('*', (req, res) => res.send('olaa negro'));
 
-initIO(io, client);
+initIO(io, activeUsers, client);

@@ -5,13 +5,15 @@ import IconButton from 'material-ui/IconButton'
 import PlayArrow from 'material-ui-icons/PlayArrow'
 
 import TypographyTheme from './TypographyTheme'
+import LoadingHOC from './LoadinHOC'
 
 const styles = {
     root: {
         border: '1px solid #e3e3e3',
         backgroundColor: '#ffffff',
         maxHeight: '90vh',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        margin: '30px 0'
     },
     list: {
         maxHeight: '80vh',
@@ -39,7 +41,7 @@ const ActiveUserList = ({ users, classes }) =>
                     <ListItemText
                         disableTypography
                         primary={
-                            <TypographyTheme value={user} />
+                            <TypographyTheme value={user.username} />
                         } 
                         className={classes.listItem} 
                     />
@@ -53,4 +55,4 @@ const ActiveUserList = ({ users, classes }) =>
         </List>
     </div>
 
-export default withStyles(styles)(ActiveUserList)
+export default LoadingHOC(withStyles(styles)(ActiveUserList))
