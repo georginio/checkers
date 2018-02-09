@@ -1,14 +1,3 @@
-import axios from 'axios'
-
-export const fetchActiveUsers = () => dispatch =>
-    axios   
-        .get('http://localhost:3300/api/users/all')
-        .then(({data}) => {
-            debugger;
-            dispatch(saveActiveUsers(data.users))
-        })
-        .catch(err => console.log(err))
-    
 export const addActiveUser = user => ({
     type: 'ADD_ACTIVE_USER',
     payload: user

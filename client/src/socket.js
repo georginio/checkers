@@ -6,6 +6,7 @@ let socket = openSocket('http://localhost:3300')
 let subscribeToMessage = cb => socket.on('message', message => cb(null, message))
 let subscribeToNewUser = cb => socket.on('new-user', user => cb(null, user))
 let subscribeToUserLogOut = cb => socket.on('logout', id => cb(null, id))
+let subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
 
 // emitters
 let sendMessage = message => socket.emit('message', message)
@@ -16,6 +17,7 @@ export {
     subscribeToMessage,
     emitNewUser,
     subscribeToNewUser,
-    subscribeToUserLogOut
+    subscribeToUserLogOut,
+    subscribeToAllUsers
 }
 

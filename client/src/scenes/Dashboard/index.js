@@ -3,8 +3,16 @@ import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 
-import { fetchActiveUsers, addActiveUser, userLogout } from '../../actions/userActions'
-import { subscribeToNewUser, subscribeToUserLogOut } from '../../socket'
+import { 
+    saveActiveUsers, 
+    addActiveUser, 
+    userLogout 
+} from '../../actions/userActions'
+import { 
+    subscribeToNewUser, 
+    subscribeToUserLogOut,
+    subscribeToAllUsers 
+} from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import FormHOC from './components/FormHOC/FormHOC'
@@ -31,13 +39,15 @@ class Dashboard extends Component {
         subscribeToUserLogOut((err, id) => {
             this.props.userLogout(id)
         })
+
+        subscribeToAllUsers((err, users) => {
+            this.props.saveActiveUsers(users)
+        })
     }
 
     componentDidMount() {
         let { activeUsers } = this.props
 
-        if (!activeUsers)
-            this.props.fetchActiveUsers()
     }
 
     render() {
@@ -65,7 +75,7 @@ const mstp = ({ username, activeUsers }) => ({
 })
 
 const mdtp = dispatch => ({
-    fetchActiveUsers: () => dispatch(fetchActiveUsers()),
+    saveActiveUsers: (users) => dispatch(saveActiveUsers(users)),
     addActiveUser: (user) => dispatch(addActiveUser(user)),
     userLogout: (id) => dispatch(userLogout(id))
 })

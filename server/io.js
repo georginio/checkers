@@ -7,6 +7,9 @@ module.exports = (io, users, redisClient) => {
         });
 
         socket.on('new-user', (username) => {
+            // send all user list to new socket before adding new socket to the list
+            io.to(socket.id).emit('all-users', users)
+            
             let user = { username, id: socket.id };
             users.push(user);
             socket.broadcast.emit('new-user', user);
