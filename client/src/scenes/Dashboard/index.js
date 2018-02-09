@@ -15,15 +15,13 @@ import {
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
+import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
 
 const styles = {
     dashboard: {
         backgroundColor: 'rgba(0, 0, 0, 0.25)',
         height: '100vh'
-    },
-    content: {
-        margin: '30px 0'
     }
 }
 
@@ -45,24 +43,22 @@ class Dashboard extends Component {
         })
     }
 
-    componentDidMount() {
-        let { activeUsers } = this.props
-
-    }
-
     render() {
         let { classes } = this.props
 
         return (
             <div className={classes.dashboard}>
                 <Grid>
-                    <Row middle="xs" center="xs">
-                        <Col stylee={classes.content} xs={12}>
-                            <Col xs={4}>
+                    <Col xs={12}>
+                        <Row center="xs" >
+                            <Col xs={3}>
                                 <ActiveUserList users={this.props.activeUsers} />
                             </Col>
-                        </Col> 
-                    </Row> 
+                            <Col xs={8}>
+                                <Chat />
+                            </Col>
+                        </Row> 
+                    </Col> 
                 </Grid>
             </div>
         );
