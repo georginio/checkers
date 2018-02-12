@@ -6,7 +6,7 @@ let styles = {
         minHeight: '50px',
         display: 'flex',
         flexDirection: 'column',
-        padding: '10px',
+        padding: '8px 10px',
         fontSize: '14px',
         borderBottom: '1px solid #bfbfbf',
         justifyContent: 'space-between'
@@ -19,13 +19,14 @@ let styles = {
     textWrapper: {
         textAlign: 'right',
         color: '#ffffff',
-        alignSelf: 'flex-end',
-        marginBottom: '5px'
+        alignSelf: 'flex-end'
     },
     text: {
         backgroundColor: '#3F51B5',
         borderRadius: '20px',
-        padding: '10px'
+        padding: '8px',
+        margin: '4px',
+        textAlign: 'left'
     }
 }
 
@@ -34,7 +35,7 @@ const RenderListItem = ({ username, text, classes }) => {
         <div className={classes.root}>
             <strong className={classes.username}>{username}</strong>
             <div className={classes.textWrapper}>
-                <span className={classes.text}>{text}</span>   
+                <p className={classes.text}>{text}</p>   
             </div>
         </div>
     )

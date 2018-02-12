@@ -3,20 +3,28 @@ import { Field, reduxForm } from 'redux-form'
 import Button from 'material-ui/Button'
 import { withStyles } from 'material-ui/styles'
 
+import ChatIcon from 'material-ui-icons/Chat'
+import Send from 'material-ui-icons/Send'
+
 import RenderedTextField from '../../RenderedTextField'
 
 import { messageValidate } from '../../validation'
 
-const styles = {
+const styles = theme => ({
     form: {
         display: 'flex',
         justifyContent: 'space-around',
-        padding: '5px'
+        padding: '8px'
     },
     button: {
-        margin: '4px 0 0 5px'
+        margin: '8px 0 0 8px'
+    },
+    icon: {
+        alignSelf: 'center',
+        color: '#5C6BC0',
+        margin: '8px 8px 0'
     }
-} 
+}) 
 
 let MessageForm = 
     ({ 
@@ -28,14 +36,20 @@ let MessageForm =
         onSubmit  
     }) => 
         <form className={classes.form} name="messageForm" onSubmit={handleSubmit(onSubmit)}>
+            <div className={classes.icon}>
+                <ChatIcon />
+            </div>
             <Field name="message" label="message" component={RenderedTextField} />
             <Button 
-                className={classes.button}
-                type="submit"
-                variant="raised" 
+                variant="fab" 
                 color="primary" 
+                type="submit"
+                aria-label="edit" 
+                className={classes.button}
                 disabled={ pristine || submitting || invalid }
-            >Submit</Button>
+                >
+                <Send />
+            </Button>
         </form>
 
 export default withStyles(styles)(reduxForm({

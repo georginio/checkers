@@ -15,7 +15,14 @@ const styles = {
 const MessageList = ({ classes, messages }) => {
     return (
         <List className={classes.root}>
-            { messages.map(({ username, text }, index) => <ListItem key={index} username={username} text={text} component={RenderListItem} /> )}
+            { messages.map(({ username, text }, index) => 
+                <ListItem 
+                    key={index} 
+                    username={username} 
+                    text={text} 
+                    component={RenderListItem} 
+                />)
+            }
         </List>
     )
 }
