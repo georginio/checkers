@@ -1,17 +1,19 @@
 import React from 'react'
-import List from 'material-ui/List'
+import List, { ListItem } from 'material-ui/List'
 import { withStyles } from 'material-ui/styles'
+
+import RenderListItem from './RenderListItem'
 
 const styles = {
     root: {
-        borderBottom: '2px solid #e3e3e3'
+        borderBottom: '3px solid #bfbfbf'
     }
 }
 
 let messageMock = [
     {
         username: 'Lemmy',
-        text: 'That\'s a way I like it baby'
+        text: 'That\'s a way I like it baby, I don\'t wanna live for ever, and don\'t forget a joker'
     },
     {
         username: 'Rob',
@@ -26,7 +28,7 @@ let messageMock = [
 const MessageList = ({ classes }) => {
     return (
         <List className={classes.root}>
-            
+            { messageMock.map(({ username, text }, index) => <ListItem key={index} username={username} text={text} component={RenderListItem} /> )}
         </List>
     );
 }
