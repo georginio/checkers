@@ -1,11 +1,16 @@
 import React, { Component } from 'react'
 import { withStyles } from 'material-ui/styles'
 
+import MessageList from './components/MessageList'
+import MessageForm from './components/MessageForm'
+
 const styles = {
     root: {
         height: '90vh',
         backgroundColor: '#ffffff',
-        margin: '30px 0'
+        margin: '30px 0',
+        display: 'flex',
+        flexDirection: 'column'
     }
 }
 
@@ -16,7 +21,8 @@ class Chat extends Component {
 
         return (
             <div className={classes.root}>
-                
+                <MessageList />
+                <MessageForm />
             </div>
         );
     }

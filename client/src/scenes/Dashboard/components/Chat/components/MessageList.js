@@ -1,5 +1,12 @@
 import React from 'react'
 import List from 'material-ui/List'
+import { withStyles } from 'material-ui/styles'
+
+const styles = {
+    root: {
+        borderBottom: '2px solid #e3e3e3'
+    }
+}
 
 let messageMock = [
     {
@@ -16,10 +23,12 @@ let messageMock = [
     }
 ]
 
-const MessageList = () => {
+const MessageList = ({ classes }) => {
     return (
-        <List>
+        <List className={classes.root}>
             
         </List>
     );
 }
+
+export default withStyles(styles)(MessageList)
