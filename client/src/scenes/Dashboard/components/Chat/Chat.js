@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import { withStyles } from 'material-ui/styles'
 import { connect } from 'react-redux'
 import { reset } from 'redux-form'
@@ -40,6 +41,12 @@ class Chat extends Component {
         // add message to reducer
         this.props.saveMessage(msg)
         this.props.resetForm()
+        
+    }
+
+    componentDidUpdate() {
+        let dom = ReactDOM.findDOMNode(this.refs.msgHistory)
+        dom.scrollTop = dom.scrollHeight;
     }
 
     render() {
@@ -47,7 +54,7 @@ class Chat extends Component {
 
         return (
             <div className={classes.root}>
-                <MessageList messages={this.props.messages} />
+                <MessageList ref="msgHistory" messages={this.props.messages} />
                 <MessageForm onSubmit={this.submitMessage} />
             </div>
         );
