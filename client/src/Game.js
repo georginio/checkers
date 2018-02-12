@@ -6,11 +6,6 @@ import Description from './scenes/Description';
 
 import './Game.css';
 
-import { 
-    subscribeToMessage,
-    sendMessage 
-} from './socket';
-
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
 
@@ -121,13 +116,6 @@ class Game extends Component {
         this.handleCheckClick = this.handleCheckClick.bind(this);
         this.handleSquareClick = this.handleSquareClick.bind(this);
         this.isSuggested = this.isSuggested.bind(this);
-
-        // socket subscriptions
-        subscribeToMessage((err, message) => {
-            console.log('message received from other client is ' + message);
-        });
-
-        setTimeout(() => sendMessage('some funny message'), 10000);
 
     }
 

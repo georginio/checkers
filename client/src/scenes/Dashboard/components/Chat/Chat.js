@@ -1,8 +1,14 @@
 import React, { Component } from 'react'
 import { withStyles } from 'material-ui/styles'
+import { connect } from 'react-redux'
+import { reset } from 'redux-form'
 
 import MessageList from './components/MessageList'
 import MessageForm from './components/MessageForm'
+
+import { emitMessage } from '../../../../socket'
+
+import { saveMessage } from '../../../../actions/messageActions'
 
 const styles = {
     root: {
@@ -16,16 +22,46 @@ const styles = {
 
 class Chat extends Component {
 
+    constructor(props) {
+        super(props)
+
+        this.submitMessage = this.submitMessage.bind(this)
+    }
+
+    submitMessage ({ message }) {
+        
+        let msg = {
+            username: this.props.username,
+            text: message
+        }
+
+        // emit socket event
+        emitMessage(msg)
+        // add message to reducer
+        this.props.saveMessage(msg)
+        this.props.resetForm()
+    }
+
     render() {
         let { classes } = this.props
 
         return (
             <div className={classes.root}>
-                <MessageList />
-                <MessageForm />
+                <MessageList messages={this.props.messages} />
+                <MessageForm onSubmit={this.submitMessage} />
             </div>
         );
     }
 }
 
-export default withStyles(styles)(Chat)
+const mstp = state => ({
+    username: state.username,
+    messages: state.messages
+}) 
+
+const mdtp = dispatch => ({
+    saveMessage: message => dispatch(saveMessage(message)),
+    resetForm: () => dispatch(reset('messageForm'))
+})
+
+export default connect(mstp, mdtp)(withStyles(styles)(Chat))

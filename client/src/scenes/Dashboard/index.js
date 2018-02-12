@@ -8,10 +8,13 @@ import {
     addActiveUser, 
     userLogout 
 } from '../../actions/userActions'
+import { saveMessage } from '../../actions/messageActions'
+ 
 import { 
     subscribeToNewUser, 
     subscribeToUserLogOut,
-    subscribeToAllUsers 
+    subscribeToAllUsers,
+    subscribeToMessage
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -40,6 +43,10 @@ class Dashboard extends Component {
 
         subscribeToAllUsers((err, users) => {
             this.props.saveActiveUsers(users)
+        })
+
+        subscribeToMessage((err, message) => {
+            this.props.saveMessage(message)
         })
     }
 
@@ -73,7 +80,8 @@ const mstp = ({ username, activeUsers }) => ({
 const mdtp = dispatch => ({
     saveActiveUsers: (users) => dispatch(saveActiveUsers(users)),
     addActiveUser: (user) => dispatch(addActiveUser(user)),
-    userLogout: (id) => dispatch(userLogout(id))
+    userLogout: (id) => dispatch(userLogout(id)),
+    saveMessage: message => dispatch(saveMessage(message))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

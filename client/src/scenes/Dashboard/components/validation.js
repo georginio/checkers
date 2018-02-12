@@ -19,3 +19,12 @@ export const validate = values => {
     return errors
 
 }
+
+export const messageValidate = values => {
+    const errors = {}
+
+    if (!values.message)
+        errors.message = "Could not send empty message"
+
+    return errors
+}

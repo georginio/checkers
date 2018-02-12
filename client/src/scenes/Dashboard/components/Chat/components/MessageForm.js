@@ -5,6 +5,8 @@ import { withStyles } from 'material-ui/styles'
 
 import RenderedTextField from '../../RenderedTextField'
 
+import { messageValidate } from '../../validation'
+
 const styles = {
     form: {
         display: 'flex',
@@ -22,9 +24,10 @@ let MessageForm =
         pristine, 
         submitting, 
         invalid,
-        classes  
+        classes,
+        onSubmit  
     }) => 
-        <form className={classes.form} name="messageForm" onSubmit={handleSubmit}>
+        <form className={classes.form} name="messageForm" onSubmit={handleSubmit(onSubmit)}>
             <Field name="message" label="message" component={RenderedTextField} />
             <Button 
                 className={classes.button}
@@ -36,5 +39,6 @@ let MessageForm =
         </form>
 
 export default withStyles(styles)(reduxForm({
-    form: 'messageForm'
+    form: 'messageForm',
+    validate: messageValidate
 })(MessageForm))
