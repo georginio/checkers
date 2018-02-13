@@ -9,11 +9,11 @@ let subscribeToUserLogOut = cb => socket.on('logout', id => cb(null, id))
 let subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
 
 // emitters
-let sendMessage = message => socket.emit('message', message)
+let emitMessage = message => socket.emit('message', message)
 let emitNewUser = username => socket.emit('new-user', username)
 
 export {
-    sendMessage,
+    emitMessage,
     subscribeToMessage,
     emitNewUser,
     subscribeToNewUser,

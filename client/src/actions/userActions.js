@@ -5,7 +5,7 @@ export const addActiveUser = user => ({
 
 export const saveUsername = username => ({
     type: 'SAVE_USERNAME',
-    payload: { username }
+    payload: username
 })
 
 export const saveActiveUsers = users => ({

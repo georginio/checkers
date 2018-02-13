@@ -8,22 +8,23 @@ import {
     addActiveUser, 
     userLogout 
 } from '../../actions/userActions'
+import { saveMessage } from '../../actions/messageActions'
+ 
 import { 
     subscribeToNewUser, 
     subscribeToUserLogOut,
-    subscribeToAllUsers 
+    subscribeToAllUsers,
+    subscribeToMessage
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
+import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
 
 const styles = {
     dashboard: {
         backgroundColor: 'rgba(0, 0, 0, 0.25)',
         height: '100vh'
-    },
-    content: {
-        margin: '30px 0'
     }
 }
 
@@ -43,11 +44,10 @@ class Dashboard extends Component {
         subscribeToAllUsers((err, users) => {
             this.props.saveActiveUsers(users)
         })
-    }
 
-    componentDidMount() {
-        let { activeUsers } = this.props
-
+        subscribeToMessage((err, message) => {
+            this.props.saveMessage(message)
+        })
     }
 
     render() {
@@ -56,13 +56,16 @@ class Dashboard extends Component {
         return (
             <div className={classes.dashboard}>
                 <Grid>
-                    <Row middle="xs" center="xs">
-                        <Col stylee={classes.content} xs={12}>
-                            <Col xs={4}>
+                    <Col xs={12}>
+                        <Row center="xs" >
+                            <Col xs={3}>
                                 <ActiveUserList users={this.props.activeUsers} />
                             </Col>
-                        </Col> 
-                    </Row> 
+                            <Col xs={8}>
+                                <Chat />
+                            </Col>
+                        </Row> 
+                    </Col> 
                 </Grid>
             </div>
         );
@@ -77,7 +80,8 @@ const mstp = ({ username, activeUsers }) => ({
 const mdtp = dispatch => ({
     saveActiveUsers: (users) => dispatch(saveActiveUsers(users)),
     addActiveUser: (user) => dispatch(addActiveUser(user)),
-    userLogout: (id) => dispatch(userLogout(id))
+    userLogout: (id) => dispatch(userLogout(id)),
+    saveMessage: message => dispatch(saveMessage(message))
 })
 
 Dashboard = withStyles(styles)(Dashboard)
