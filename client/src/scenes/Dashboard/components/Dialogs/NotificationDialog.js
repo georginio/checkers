@@ -15,7 +15,7 @@ const styles = {
     }
 }
 
-const NotificationDialog = ({ classes, open, handleOpen, handleClose, context }) => {
+const NotificationDialog = ({ classes, open, handleOpen, handleClose, context, progress }) => {
     return (
         <Dialog
             open={open}
@@ -29,7 +29,7 @@ const NotificationDialog = ({ classes, open, handleOpen, handleClose, context })
                 <DialogContentText id="alert-dialog-description">
                     {context}
                 </DialogContentText>
-                <LinearProgress variant="determinate" value={100} />
+                <LinearProgress color="secondary" variant="determinate" value={progress} />
             </DialogContent>
             <DialogActions>
                 <Button 
@@ -37,7 +37,7 @@ const NotificationDialog = ({ classes, open, handleOpen, handleClose, context })
                     color="secondary"
                     onClick={handleClose} 
                 >
-                Cancel
+                    Cancel
                 </Button>
                 <Button 
                     variant="raised" 
@@ -45,7 +45,7 @@ const NotificationDialog = ({ classes, open, handleOpen, handleClose, context })
                     onClick={handleClose} 
                     autoFocus
                 >
-                Accept
+                    Accept
                 </Button>
             </DialogActions>
         </Dialog>

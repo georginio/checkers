@@ -22,7 +22,8 @@ import {
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
-import NotificationDialog from './components/NotificationDialog/NotificationDialog';
+import NotificationDialog from './components/Dialogs/NotificationDialog';
+import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog';
 
 const styles = {
     dashboard: {
@@ -37,7 +38,9 @@ class Dashboard extends Component {
         super(props)
 
         this.state = {
-            playNotifOpen: false
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            progressCompleted: 0
         }
 
         subscribeToNewUser((err, user) => {
@@ -57,13 +60,13 @@ class Dashboard extends Component {
         })
 
         subscribeToInvitation((err, invitation) => {
-            console.log(invitation, 'tou received invitation from ')
             this.handleOpen(`${invitation.username} offered to play`)
         })
 
         this.emitInvitation = this.emitInvitation.bind(this)
         this.handleClose = this.handleClose.bind(this)
         this.handleOpen = this.handleOpen.bind(this)
+        this.handleWaitOpen = this.handleWaitOpen.bind(this)
     }
 
     handleOpen(message) {
@@ -71,10 +74,27 @@ class Dashboard extends Component {
             playNotifOpen: true,
             notifContext: message 
         })
+
+        this.time = setInterval(this.progress, 500)
+    }
+
+    handleWaitOpen() {
+        this.setState({ 
+            waitNotifOpen: true,
+            progressCompleted: 0 
+        })
+
+        this.time = setInterval(this.progress, 500)
     }
 
     handleClose() {
-        this.setState({ playNotifOpen: false })
+        this.setState({ 
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            progressCompleted: 0 
+        })
+
+        clearInterval(this.time)
     }
 
     emitInvitation(id, username) {
@@ -83,6 +103,17 @@ class Dashboard extends Component {
             username,
             from: this.props.username  
         })
+
+        this.handleWaitOpen()
+    }
+
+    progress = () => {
+        let { progressCompleted } = this.state
+
+        if (progressCompleted === 100) 
+            this.handleClose()
+        else 
+            this.setState({ progressCompleted: progressCompleted + 4 })
     }
 
     render() {
@@ -108,7 +139,12 @@ class Dashboard extends Component {
                             handleClose={this.handleClose} 
                             handleOpen={this.handleOpen} 
                             context={this.state.notifContext}
+                            progress={this.state.progressCompleted}
                         /> 
+                        <WaitNotificationDialog 
+                            progress={this.state.progressCompleted}
+                            open={this.state.waitNotifOpen} 
+                        />
                     </Col> 
                 </Grid>
             </div>
