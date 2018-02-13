@@ -1,0 +1,55 @@
+import React from 'react'
+import Button from 'material-ui/Button'
+import { withStyles } from 'material-ui/styles';
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from 'material-ui/Dialog'
+import { LinearProgress } from 'material-ui/Progress';
+
+const styles = {
+    root: {
+        minWidth: '350px'
+    }
+}
+
+const NotificationDialog = ({ classes, open, handleOpen, handleClose, context }) => {
+    return (
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            disableBackdropClick={true}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">Play Offer</DialogTitle>
+            <DialogContent className={classes.root}>
+                <DialogContentText id="alert-dialog-description">
+                    {context}
+                </DialogContentText>
+                <LinearProgress variant="determinate" value={100} />
+            </DialogContent>
+            <DialogActions>
+                <Button 
+                    variant="raised" 
+                    color="secondary"
+                    onClick={handleClose} 
+                >
+                Cancel
+                </Button>
+                <Button 
+                    variant="raised" 
+                    color="primary" 
+                    onClick={handleClose} 
+                    autoFocus
+                >
+                Accept
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
+export default withStyles(styles)(NotificationDialog)

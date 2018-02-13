@@ -22,6 +22,7 @@ import {
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
+import NotificationDialog from './components/NotificationDialog/NotificationDialog';
 
 const styles = {
     dashboard: {
@@ -34,6 +35,10 @@ class Dashboard extends Component {
 
     constructor(props) {
         super(props)
+
+        this.state = {
+            playNotifOpen: false
+        }
 
         subscribeToNewUser((err, user) => {
             this.props.addActiveUser(user)
@@ -53,12 +58,26 @@ class Dashboard extends Component {
 
         subscribeToInvitation((err, invitation) => {
             console.log(invitation, 'tou received invitation from ')
+            this.handleOpen(`${invitation.username} offered to play`)
         })
 
         this.emitInvitation = this.emitInvitation.bind(this)
+        this.handleClose = this.handleClose.bind(this)
+        this.handleOpen = this.handleOpen.bind(this)
     }
 
-    emitInvitation (id, username) {
+    handleOpen(message) {
+        this.setState({ 
+            playNotifOpen: true,
+            notifContext: message 
+        })
+    }
+
+    handleClose() {
+        this.setState({ playNotifOpen: false })
+    }
+
+    emitInvitation(id, username) {
         emitInvitation({ 
             id, 
             username,
@@ -83,7 +102,13 @@ class Dashboard extends Component {
                             <Col xs={8}>
                                 <Chat />
                             </Col>
-                        </Row> 
+                        </Row>
+                        <NotificationDialog 
+                            open={this.state.playNotifOpen}
+                            handleClose={this.handleClose} 
+                            handleOpen={this.handleOpen} 
+                            context={this.state.notifContext}
+                        /> 
                     </Col> 
                 </Grid>
             </div>
