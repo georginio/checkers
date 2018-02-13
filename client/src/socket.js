@@ -7,17 +7,32 @@ let subscribeToMessage = cb => socket.on('message', message => cb(null, message)
 let subscribeToNewUser = cb => socket.on('new-user', user => cb(null, user))
 let subscribeToUserLogOut = cb => socket.on('logout', id => cb(null, id))
 let subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
-
+let subscribeToInvitation = cb => socket.on('play-invitation', invitation => cb(null, invitation))
+let subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', decline => cb(null, decline))
+let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
+let subscribeToGameStart = cb => socket.on('game-start', () => cb(null))
 // emitters
 let emitMessage = message => socket.emit('message', message)
 let emitNewUser = username => socket.emit('new-user', username)
+let emitInvitation = invitation => socket.emit('play-invitation', invitation)
+let emitDeclineInvitation = decline => socket.emit('decline-invitation', decline)
+let emitAccept = accept => socket.emit('accept-invitation', accept)
+let emitJoinRoom = room => socket.emit('join-room', room)
 
 export {
-    emitMessage,
     subscribeToMessage,
-    emitNewUser,
     subscribeToNewUser,
     subscribeToUserLogOut,
-    subscribeToAllUsers
+    subscribeToAllUsers,
+    subscribeToInvitation,
+    subscribeToDeclinedInvitation,
+    subscribeToAccpt,
+    subscribeToGameStart,
+    emitMessage,
+    emitNewUser,
+    emitInvitation,
+    emitDeclineInvitation,
+    emitAccept,
+    emitJoinRoom
 }
 

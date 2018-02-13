@@ -1,4 +1,4 @@
-module.exports = (io, users, redisClient) => {
+module.exports = (io, users, rooms, redisClient) => {
 
     io.on('connection', (socket) => {
 
@@ -14,6 +14,30 @@ module.exports = (io, users, redisClient) => {
             users.push(user);
             socket.broadcast.emit('new-user', user);
         });
+
+        socket.on('play-invitation', (invitation) => {
+            invitation.deliverer = socket.id;
+            socket.to(invitation.id).emit('play-invitation', invitation);
+        });
+
+        socket.on('accept-invitation', ({ username, deliverer }) => {
+            let roomName = username + deliverer.username; 
+            rooms[roomName] = {
+                player1: deliverer.username,
+                player2: username
+            };
+            socket.join(roomName);
+            socket.to(deliverer.id).emit('accepted-invitation', { roomName });
+        })
+
+        socket.on('decline-invitation', (decline) => {
+            socket.to(decline.deliverer).emit('decline-invitation', decline);
+        });
+
+        socket.on('join-room', (roomName) => {
+            socket.join(roomName);
+            io.to(roomName).emit('game-start');
+        })
 
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);

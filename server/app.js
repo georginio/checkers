@@ -13,6 +13,7 @@ const io = socket.listen(server);
 const client = redis.createClient();
 
 const activeUsers = [];
+const rooms = {};
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -40,4 +41,4 @@ app.delete('/api/users/all', (req, res) => {
 
 app.get('*', (req, res) => res.send('olaa negro'));
 
-initIO(io, activeUsers, client);
+initIO(io, activeUsers, rooms, client);

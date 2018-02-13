@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
+import { withRouter } from 'react-router-dom'
 
 import { 
     saveActiveUsers, 
@@ -14,12 +15,23 @@ import {
     subscribeToNewUser, 
     subscribeToUserLogOut,
     subscribeToAllUsers,
-    subscribeToMessage
+    subscribeToMessage,
+    subscribeToInvitation,
+    subscribeToDeclinedInvitation,
+    subscribeToAccpt,
+    subscribeToGameStart,
+    emitInvitation,
+    emitDeclineInvitation,
+    emitAccept,
+    emitJoinRoom
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
+import NotificationDialog from './components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
+import AlertDialog from './components/Dialogs/AlertDialog'
 
 const styles = {
     dashboard: {
@@ -32,6 +44,14 @@ class Dashboard extends Component {
 
     constructor(props) {
         super(props)
+
+        this.state = {
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0,
+            alertContent: ''
+        }
 
         subscribeToNewUser((err, user) => {
             this.props.addActiveUser(user)
@@ -48,6 +68,105 @@ class Dashboard extends Component {
         subscribeToMessage((err, message) => {
             this.props.saveMessage(message)
         })
+
+        subscribeToInvitation((err, invitation) => {
+            this.handleOpen(`${invitation.from} offered to play`)
+            this.deliverer = { 
+                username: invitation.from,
+                id: invitation.deliverer
+            }
+        })
+
+        subscribeToDeclinedInvitation((err, { username }) => {
+            this.handleClose()
+            this.setState({ 
+                alertOpen: true,
+                alertContent: `${username} declined your invitatio!` 
+            })
+        })
+
+        subscribeToAccpt((err, { roomName }) => {
+            emitJoinRoom(roomName)
+        })
+
+        subscribeToGameStart(err => {
+            this.props.history.push('/game')
+        })
+
+        this.emitInvitation = this.emitInvitation.bind(this)
+        this.handleClose = this.handleClose.bind(this)
+        this.handleOpen = this.handleOpen.bind(this)
+        this.handleWaitOpen = this.handleWaitOpen.bind(this)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.time)
+    }
+
+    handleOpen(message) {
+        this.setState({ 
+            playNotifOpen: true,
+            notifContext: message 
+        })
+
+        this.time = setInterval(this.progress, 500)
+    }
+
+    handleWaitOpen() {
+        this.setState({ 
+            waitNotifOpen: true,
+            progressCompleted: 0 
+        })
+
+        this.time = setInterval(this.progress, 500)
+    }
+
+    handleClose() {
+        this.setState({ 
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0 
+        })
+
+        clearInterval(this.time)
+    }
+
+    emitInvitation(id, username) {
+        emitInvitation({ 
+            id, 
+            username,
+            from: this.props.username  
+        })
+
+        this.handleWaitOpen()
+    }
+
+    declineInvitation = () => {
+        this.handleClose()
+        emitDeclineInvitation({ 
+            deliverer: this.deliverer.id,
+            username: this.props.username 
+        })
+        this.deliverer = null
+    }
+
+    acceptInvitation = () => {
+        emitAccept({
+            username: this.props.username,
+            deliverer: this.deliverer
+        })
+        
+        this.deliverer = null
+    }
+
+    progress = () => {
+        let { progressCompleted } = this.state
+
+        if (progressCompleted === 100) 
+            this.handleClose()
+        else 
+            this.setState({ progressCompleted: progressCompleted + 4 })
     }
 
     render() {
@@ -59,12 +178,32 @@ class Dashboard extends Component {
                     <Col xs={12}>
                         <Row center="xs" >
                             <Col xs={3}>
-                                <ActiveUserList users={this.props.activeUsers} />
+                                <ActiveUserList 
+                                    emitInvitation={this.emitInvitation} 
+                                    users={this.props.activeUsers} 
+                                />
                             </Col>
                             <Col xs={8}>
                                 <Chat />
                             </Col>
-                        </Row> 
+                        </Row>
+                        <NotificationDialog 
+                            open={this.state.playNotifOpen}
+                            handleClose={this.handleClose} 
+                            context={this.state.notifContext}
+                            progress={this.state.progressCompleted}
+                            acceptInvitation={this.acceptInvitation}
+                            declineInvitation={this.declineInvitation}
+                        /> 
+                        <WaitNotificationDialog 
+                            progress={this.state.progressCompleted}
+                            open={this.state.waitNotifOpen} 
+                        />
+                        <AlertDialog 
+                            open={this.state.alertOpen}
+                            content={this.state.alertContent}
+                            handleClose={this.handleClose} 
+                        />
                     </Col> 
                 </Grid>
             </div>
@@ -78,12 +217,12 @@ const mstp = ({ username, activeUsers }) => ({
 })
 
 const mdtp = dispatch => ({
-    saveActiveUsers: (users) => dispatch(saveActiveUsers(users)),
-    addActiveUser: (user) => dispatch(addActiveUser(user)),
-    userLogout: (id) => dispatch(userLogout(id)),
+    saveActiveUsers: users => dispatch(saveActiveUsers(users)),
+    addActiveUser: user => dispatch(addActiveUser(user)),
+    userLogout: id => dispatch(userLogout(id)),
     saveMessage: message => dispatch(saveMessage(message))
 })
 
 Dashboard = withStyles(styles)(Dashboard)
 
-export default connect(mstp, mdtp)(FormHOC(Dashboard))
+export default withRouter(connect(mstp, mdtp)(FormHOC(Dashboard)))
