@@ -8,8 +8,6 @@ import Send from 'material-ui-icons/Send'
 
 import RenderedTextField from '../../RenderedTextField'
 
-import { messageValidate } from '../../validation'
-
 const styles = theme => ({
     form: {
         display: 'flex',
@@ -54,5 +52,4 @@ let MessageForm =
 
 export default withStyles(styles)(reduxForm({
     form: 'messageForm',
-    validate: messageValidate
 })(MessageForm))
