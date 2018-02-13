@@ -16,7 +16,12 @@ module.exports = (io, users, redisClient) => {
         });
 
         socket.on('play-invitation', (invitation) => {
-            socket.to(invitation.id).emit('play-invitation', invitation)
+            invitation.deliverer = socket.id;
+            socket.to(invitation.id).emit('play-invitation', invitation);
+        });
+
+        socket.on('decline-invitation', (decline) => {
+            socket.to(decline.deliverer).emit('decline-invitation', decline);
         });
 
         socket.on('disconnect', () => {

@@ -17,6 +17,8 @@ import {
     subscribeToMessage,
     subscribeToInvitation,
     emitInvitation,
+    emitDeclineInvitation,
+    subscribeToDeclinedInvitation
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -24,6 +26,7 @@ import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
 import NotificationDialog from './components/Dialogs/NotificationDialog';
 import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog';
+import AlertDialog from './components/Dialogs/AlertDialog';
 
 const styles = {
     dashboard: {
@@ -40,7 +43,9 @@ class Dashboard extends Component {
         this.state = {
             playNotifOpen: false,
             waitNotifOpen: false,
-            progressCompleted: 0
+            alertOpen: false,
+            progressCompleted: 0,
+            alertContent: ''
         }
 
         subscribeToNewUser((err, user) => {
@@ -61,6 +66,15 @@ class Dashboard extends Component {
 
         subscribeToInvitation((err, invitation) => {
             this.handleOpen(`${invitation.username} offered to play`)
+            this.deliverer = invitation.deliverer;
+        })
+
+        subscribeToDeclinedInvitation((err, { username }) => {
+            this.handleClose()
+            this.setState({ 
+                alertOpen: true,
+                alertContent: `${username} declined your invitatio!` 
+            })
         })
 
         this.emitInvitation = this.emitInvitation.bind(this)
@@ -91,6 +105,7 @@ class Dashboard extends Component {
         this.setState({ 
             playNotifOpen: false,
             waitNotifOpen: false,
+            alertOpen: false,
             progressCompleted: 0 
         })
 
@@ -105,6 +120,15 @@ class Dashboard extends Component {
         })
 
         this.handleWaitOpen()
+    }
+
+    declineInvitation = () => {
+        this.handleClose()
+        emitDeclineInvitation({ 
+            deliverer: this.deliverer,
+            username: this.props.username 
+        })
+        this.deliverer = null
     }
 
     progress = () => {
@@ -140,10 +164,16 @@ class Dashboard extends Component {
                             handleOpen={this.handleOpen} 
                             context={this.state.notifContext}
                             progress={this.state.progressCompleted}
+                            declineInvitation={this.declineInvitation}
                         /> 
                         <WaitNotificationDialog 
                             progress={this.state.progressCompleted}
                             open={this.state.waitNotifOpen} 
+                        />
+                        <AlertDialog 
+                            open={this.state.alertOpen}
+                            content={this.state.alertContent}
+                            handleClose={this.handleClose} 
                         />
                     </Col> 
                 </Grid>

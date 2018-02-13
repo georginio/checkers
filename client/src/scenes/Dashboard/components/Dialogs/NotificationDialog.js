@@ -15,7 +15,7 @@ const styles = {
     }
 }
 
-const NotificationDialog = ({ classes, open, handleOpen, handleClose, context, progress }) => {
+const NotificationDialog = ({ classes, open, handleOpen, handleClose, declineInvitation, context, progress }) => {
     return (
         <Dialog
             open={open}
@@ -35,7 +35,7 @@ const NotificationDialog = ({ classes, open, handleOpen, handleClose, context, p
                 <Button 
                     variant="raised" 
                     color="secondary"
-                    onClick={handleClose} 
+                    onClick={declineInvitation}
                 >
                     Cancel
                 </Button>
