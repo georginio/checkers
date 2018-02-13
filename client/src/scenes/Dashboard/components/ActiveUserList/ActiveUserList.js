@@ -29,19 +29,20 @@ const styles = {
     }
 }
 
-const ActiveUserList = ({ users, classes }) =>
+const ActiveUserList = ({ users, classes, emitInvitation }) =>
     <div className={classes.root}>
         <h3 className={classes.heading}>Available users</h3>
         <List className={classes.list}>
-            {users.map((user, index) => 
+            {users.map(({ id, username }, index) => 
                 <ListItem 
-                    key={index}
+                    key={id}
                     button
+                    onClick={() => emitInvitation(id, username)}
                 >
                     <ListItemText
                         disableTypography
                         primary={
-                            <TypographyTheme value={user.username} />
+                            <TypographyTheme value={username} />
                         } 
                         className={classes.listItem} 
                     />

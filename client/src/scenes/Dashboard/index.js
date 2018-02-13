@@ -14,7 +14,9 @@ import {
     subscribeToNewUser, 
     subscribeToUserLogOut,
     subscribeToAllUsers,
-    subscribeToMessage
+    subscribeToMessage,
+    subscribeToInvitation,
+    emitInvitation,
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -48,6 +50,20 @@ class Dashboard extends Component {
         subscribeToMessage((err, message) => {
             this.props.saveMessage(message)
         })
+
+        subscribeToInvitation((err, invitation) => {
+            console.log(invitation, 'tou received invitation from ')
+        })
+
+        this.emitInvitation = this.emitInvitation.bind(this)
+    }
+
+    emitInvitation (id, username) {
+        emitInvitation({ 
+            id, 
+            username,
+            from: this.props.username  
+        })
     }
 
     render() {
@@ -59,7 +75,10 @@ class Dashboard extends Component {
                     <Col xs={12}>
                         <Row center="xs" >
                             <Col xs={3}>
-                                <ActiveUserList users={this.props.activeUsers} />
+                                <ActiveUserList 
+                                    emitInvitation={this.emitInvitation} 
+                                    users={this.props.activeUsers} 
+                                />
                             </Col>
                             <Col xs={8}>
                                 <Chat />

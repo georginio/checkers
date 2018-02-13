@@ -15,6 +15,10 @@ module.exports = (io, users, redisClient) => {
             socket.broadcast.emit('new-user', user);
         });
 
+        socket.on('play-invitation', (invitation) => {
+            socket.to(invitation.id).emit('play-invitation', invitation)
+        });
+
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);
 
