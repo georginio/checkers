@@ -15,8 +15,15 @@ const styles = {
     }
 }
 
-const NotificationDialog = ({ classes, open, handleOpen, handleClose, declineInvitation, context, progress }) => {
-    return (
+const NotificationDialog = ({ 
+        classes, 
+        open, 
+        handleClose, 
+        acceptInvitation, 
+        declineInvitation, 
+        context, 
+        progress 
+    }) => 
         <Dialog
             open={open}
             onClose={handleClose}
@@ -42,14 +49,12 @@ const NotificationDialog = ({ classes, open, handleOpen, handleClose, declineInv
                 <Button 
                     variant="raised" 
                     color="primary" 
-                    onClick={handleClose} 
+                    onClick={acceptInvitation} 
                     autoFocus
                 >
                     Accept
                 </Button>
             </DialogActions>
         </Dialog>
-    )
-}
 
 export default withStyles(styles)(NotificationDialog)

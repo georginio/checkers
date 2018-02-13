@@ -11,17 +11,14 @@ const styles = {
     }
 }
 
-const AlertDialog = ({ classes, open, handleClose, content }) => {
-    return (
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-        >
-            <DialogTitle id="alert-dialog-title">{content}</DialogTitle>
-        </Dialog>
-    )
-}
+const AlertDialog = ({ classes, open, handleClose, content }) =>
+    <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+    >
+        <DialogTitle id="alert-dialog-title">{content}</DialogTitle>
+    </Dialog>
 
 export default withStyles(styles)(AlertDialog)

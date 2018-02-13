@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
+import { withRouter } from 'react-router-dom'
 
 import { 
     saveActiveUsers, 
@@ -16,17 +17,21 @@ import {
     subscribeToAllUsers,
     subscribeToMessage,
     subscribeToInvitation,
+    subscribeToDeclinedInvitation,
+    subscribeToAccpt,
+    subscribeToGameStart,
     emitInvitation,
     emitDeclineInvitation,
-    subscribeToDeclinedInvitation
+    emitAccept,
+    emitJoinRoom
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC'
-import NotificationDialog from './components/Dialogs/NotificationDialog';
-import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog';
-import AlertDialog from './components/Dialogs/AlertDialog';
+import NotificationDialog from './components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
+import AlertDialog from './components/Dialogs/AlertDialog'
 
 const styles = {
     dashboard: {
@@ -65,8 +70,11 @@ class Dashboard extends Component {
         })
 
         subscribeToInvitation((err, invitation) => {
-            this.handleOpen(`${invitation.username} offered to play`)
-            this.deliverer = invitation.deliverer;
+            this.handleOpen(`${invitation.from} offered to play`)
+            this.deliverer = { 
+                username: invitation.from,
+                id: invitation.deliverer
+            }
         })
 
         subscribeToDeclinedInvitation((err, { username }) => {
@@ -77,10 +85,22 @@ class Dashboard extends Component {
             })
         })
 
+        subscribeToAccpt((err, { roomName }) => {
+            emitJoinRoom(roomName)
+        })
+
+        subscribeToGameStart(err => {
+            this.props.history.push('/game')
+        })
+
         this.emitInvitation = this.emitInvitation.bind(this)
         this.handleClose = this.handleClose.bind(this)
         this.handleOpen = this.handleOpen.bind(this)
         this.handleWaitOpen = this.handleWaitOpen.bind(this)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.time)
     }
 
     handleOpen(message) {
@@ -125,9 +145,18 @@ class Dashboard extends Component {
     declineInvitation = () => {
         this.handleClose()
         emitDeclineInvitation({ 
-            deliverer: this.deliverer,
+            deliverer: this.deliverer.id,
             username: this.props.username 
         })
+        this.deliverer = null
+    }
+
+    acceptInvitation = () => {
+        emitAccept({
+            username: this.props.username,
+            deliverer: this.deliverer
+        })
+        
         this.deliverer = null
     }
 
@@ -161,9 +190,9 @@ class Dashboard extends Component {
                         <NotificationDialog 
                             open={this.state.playNotifOpen}
                             handleClose={this.handleClose} 
-                            handleOpen={this.handleOpen} 
                             context={this.state.notifContext}
                             progress={this.state.progressCompleted}
+                            acceptInvitation={this.acceptInvitation}
                             declineInvitation={this.declineInvitation}
                         /> 
                         <WaitNotificationDialog 
@@ -188,12 +217,12 @@ const mstp = ({ username, activeUsers }) => ({
 })
 
 const mdtp = dispatch => ({
-    saveActiveUsers: (users) => dispatch(saveActiveUsers(users)),
-    addActiveUser: (user) => dispatch(addActiveUser(user)),
-    userLogout: (id) => dispatch(userLogout(id)),
+    saveActiveUsers: users => dispatch(saveActiveUsers(users)),
+    addActiveUser: user => dispatch(addActiveUser(user)),
+    userLogout: id => dispatch(userLogout(id)),
     saveMessage: message => dispatch(saveMessage(message))
 })
 
 Dashboard = withStyles(styles)(Dashboard)
 
-export default connect(mstp, mdtp)(FormHOC(Dashboard))
+export default withRouter(connect(mstp, mdtp)(FormHOC(Dashboard)))
