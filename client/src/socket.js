@@ -11,6 +11,10 @@ let subscribeToInvitation = cb => socket.on('play-invitation', invitation => cb(
 let subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', decline => cb(null, decline))
 let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
 let subscribeToGameStart = cb => socket.on('game-start', () => cb(null))
+
+//game subs
+let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
+
 // emitters
 let emitMessage = message => socket.emit('message', message)
 let emitNewUser = username => socket.emit('new-user', username)
@@ -19,7 +23,11 @@ let emitDeclineInvitation = decline => socket.emit('decline-invitation', decline
 let emitAccept = accept => socket.emit('accept-invitation', accept)
 let emitJoinRoom = room => socket.emit('join-room', room)
 
+// game emitters
+let emitMove = data => socket.emit('check-move', data)
+
 export {
+    // subs
     subscribeToMessage,
     subscribeToNewUser,
     subscribeToUserLogOut,
@@ -28,11 +36,16 @@ export {
     subscribeToDeclinedInvitation,
     subscribeToAccpt,
     subscribeToGameStart,
+    // game subs
+    subscribeToMove,
+    // emits
     emitMessage,
     emitNewUser,
     emitInvitation,
     emitDeclineInvitation,
     emitAccept,
-    emitJoinRoom
+    emitJoinRoom,
+    // game emits 
+    emitMove
 }
 

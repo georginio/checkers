@@ -6,6 +6,11 @@ import Description from './scenes/Description';
 
 import './Game.css';
 
+import {
+    subscribeToMove,
+    emitMove
+} from './socket'
+
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
 
@@ -117,6 +122,9 @@ class Game extends Component {
         this.handleSquareClick = this.handleSquareClick.bind(this);
         this.isSuggested = this.isSuggested.bind(this);
 
+        subscribeToMove((err, move) => {
+            this._opponentMove(move)
+        })
     }
 
     componentWillMount() {
@@ -501,14 +509,20 @@ class Game extends Component {
         let squares = this.state.squares.slice();
         let activeChecker = squares[this.activeRow][this.activeColumn];
         let suggestedSquares = [];
-
-        // replace checker location to another square
+        let emitObj = {
+            from: {
+                row: this.activeRow,
+                column: this.activeColumn  
+            }
+        }
+        // change checker location with another square
         squares[row][column] = activeChecker;
         squares[this.activeRow][this.activeColumn] = { row: activeChecker.row, column: activeChecker.column };
         
         activeChecker.row = row;
         activeChecker.column = column;
 
+        emitObj.activeChecker = activeChecker
         // if move is kill operation check if there is another kill probability
         if (this.killTarget.length > 0) {
 
@@ -516,7 +530,8 @@ class Game extends Component {
             squares[this.killTarget[targetIndex].row][this.killTarget[targetIndex].column].player === PLAYER_1 ? this.checkQuantity.white -= 1 : this.checkQuantity.black -= 1;
             // remove killed check from board
             squares[this.killTarget[targetIndex].row][this.killTarget[targetIndex].column] = this.killTarget[targetIndex];
-            
+            emitObj.killTarget = this.killTarget[targetIndex]
+
             if (this.activeRow < row && this.activeColumn < column)
                 this.bannedDirection = 'TOP_LEFT';
             else if (this.activeRow < row && this.activeColumn > column)
@@ -528,6 +543,7 @@ class Game extends Component {
             
             this._resetKillTarget();
             this._checkForKill(squares, suggestedSquares, row, column);
+
         }
 
         // change active row and column due to moved checher
@@ -545,11 +561,26 @@ class Game extends Component {
             this.bannedDirection = null;
         }
 
+        // emit move
+        emitMove(emitObj)
+
         this.setState({ 
             squares,
             suggestedSquares 
         });
         
+    }
+
+    _opponentMove = ({ from, activeChecker, killTarget }) => {
+        let squares = this.state.squares.slice()
+
+        squares[from.row][from.column] = from
+        squares[activeChecker.row][activeChecker.column] = activeChecker
+
+        if (killTarget) 
+            squares[killTarget.row][killTarget.column] = killTarget
+        
+        this.setState(squares)
     }
 
     _resetKillTarget() {

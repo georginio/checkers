@@ -49,5 +49,9 @@ module.exports = (io, users, rooms, redisClient) => {
 
         });
         
+        // listen for game emitters
+        socket.on('check-move', (destination) => {
+            socket.broadcast.emit('check-move', destination);
+        });
     });
 }
