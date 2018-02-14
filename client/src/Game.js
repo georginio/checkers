@@ -122,6 +122,7 @@ class Game extends Component {
             white: 12,
             black: 12
         };
+
         this.handleCheckClick = this.handleCheckClick.bind(this);
         this.handleSquareClick = this.handleSquareClick.bind(this);
         this.isSuggested = this.isSuggested.bind(this);
@@ -749,6 +750,7 @@ class Game extends Component {
     }
 
     render () {
+
         return (
             <div className="game">
                 <Description turn={this.props.play.turn} />
@@ -758,7 +760,7 @@ class Game extends Component {
                     isSuggested={this.isSuggested}
                     onCheckClick={this.handleCheckClick}
                     onSquareClick={this.handleSquareClick}
-                    offset={this.state.offset}
+                    rotate={this.props.play.side === PLAYER_1}
                 />
             </div>
         );
