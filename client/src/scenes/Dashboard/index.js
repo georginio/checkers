@@ -10,6 +10,7 @@ import {
     userLogout 
 } from '../../actions/userActions'
 import { saveMessage } from '../../actions/messageActions'
+import { setPlayOptions } from '../../actions/playActions'
  
 import { 
     subscribeToNewUser, 
@@ -86,11 +87,23 @@ class Dashboard extends Component {
         })
 
         subscribeToAccpt((err, { roomName }) => {
-            emitJoinRoom(roomName)
+            emitJoinRoom({ roomName, username: this.props.username })
         })
 
-        subscribeToGameStart(err => {
+        subscribeToGameStart((err, { roomName, secondPlayer }) => {
+            let options = {}
+
+            if (secondPlayer === this.props.username) {
+                options.side = 'Player 2'
+                options.turn = 'Player 1'
+            } else {
+                options.side = 'Player 1'
+                options.turn = 'Player 1'
+            }
+
+            this.props.setPlayOptions(options)
             this.props.history.push('/game')
+
         })
 
         this.emitInvitation = this.emitInvitation.bind(this)
@@ -220,7 +233,8 @@ const mdtp = dispatch => ({
     saveActiveUsers: users => dispatch(saveActiveUsers(users)),
     addActiveUser: user => dispatch(addActiveUser(user)),
     userLogout: id => dispatch(userLogout(id)),
-    saveMessage: message => dispatch(saveMessage(message))
+    saveMessage: message => dispatch(saveMessage(message)),
+    setPlayOptions: side => dispatch(setPlayOptions(side))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

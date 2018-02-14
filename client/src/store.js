@@ -5,6 +5,7 @@ import { reducer as formReducer } from 'redux-form'
 import usernameReducer from './reducers/usernameReducer'
 import usersReducer from './reducers/usersReducer'
 import messageReducer from './reducers/messageReducer'
+import playReducer from './reducers/playReducer'
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -12,6 +13,7 @@ const reducers = combineReducers({
     username: usernameReducer,
     activeUsers: usersReducer,
     messages: messageReducer,
+    play: playReducer,
     form: formReducer
 })
 

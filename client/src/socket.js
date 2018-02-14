@@ -10,10 +10,11 @@ let subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
 let subscribeToInvitation = cb => socket.on('play-invitation', invitation => cb(null, invitation))
 let subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', decline => cb(null, decline))
 let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
-let subscribeToGameStart = cb => socket.on('game-start', () => cb(null))
+let subscribeToGameStart = cb => socket.on('game-start', options => cb(null, options))
 
 //game subs
 let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
+let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
 
 // emitters
 let emitMessage = message => socket.emit('message', message)
@@ -25,6 +26,7 @@ let emitJoinRoom = room => socket.emit('join-room', room)
 
 // game emitters
 let emitMove = data => socket.emit('check-move', data)
+let emitSwitchTurn = turn => socket.emit('switch-turn', turn)
 
 export {
     // subs
@@ -38,6 +40,7 @@ export {
     subscribeToGameStart,
     // game subs
     subscribeToMove,
+    subscribeToSwitchTurn,
     // emits
     emitMessage,
     emitNewUser,
@@ -46,6 +49,7 @@ export {
     emitAccept,
     emitJoinRoom,
     // game emits 
-    emitMove
+    emitMove,
+    emitSwitchTurn
 }
 

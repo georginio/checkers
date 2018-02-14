@@ -34,9 +34,10 @@ module.exports = (io, users, rooms, redisClient) => {
             socket.to(decline.deliverer).emit('decline-invitation', decline);
         });
 
-        socket.on('join-room', (roomName) => {
+        socket.on('join-room', ({ roomName, username }) => {
             socket.join(roomName);
-            io.to(roomName).emit('game-start');
+            // strange way to give sides to players
+            io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
         })
 
         socket.on('disconnect', () => {
@@ -53,5 +54,10 @@ module.exports = (io, users, rooms, redisClient) => {
         socket.on('check-move', (destination) => {
             socket.broadcast.emit('check-move', destination);
         });
+
+        socket.on('switch-turn', (turn) => {
+            socket.broadcast.emit('switch-turn', turn);
+        });
+        
     });
 }

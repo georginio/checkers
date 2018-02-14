@@ -1,14 +1,18 @@
 import React, { Component } from 'react';
-// import ReactDOM from 'react-dom';
+import { connect } from 'react-redux'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
 
 import './Game.css';
 
+import { switchTurn } from './actions/playActions'
+
 import {
     subscribeToMove,
-    emitMove
+    emitMove,
+    emitSwitchTurn,
+    subscribeToSwitchTurn
 } from './socket'
 
 const PLAYER_1 = 'Player 1';
@@ -125,6 +129,10 @@ class Game extends Component {
         subscribeToMove((err, move) => {
             this._opponentMove(move)
         })
+    
+        subscribeToSwitchTurn((err, turn) => {
+            this.props.switchTurn(turn)
+        })
     }
 
     componentWillMount() {
@@ -146,7 +154,7 @@ class Game extends Component {
 
         if (this.killTarget.length > 0) return;
 
-        if (this.state.turn === check.turn) {
+        if (this.props.play.turn === this.props.play.side && check.player === this.props.play.turn) {
             this._resetKillTarget();
             this._deactivateAllchecks(squares);
 
@@ -164,7 +172,7 @@ class Game extends Component {
         if (
             this.mustMove && 
             this.isSuggested(row, column) && 
-            this.state.squares[this.activeRow][this.activeColumn].player === this.state.turn
+            this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn
         ) this._move(row, column);
   
     }
@@ -211,7 +219,7 @@ class Game extends Component {
 
                     if ( squares[leftTop.currentRow][leftTop.currentColumn] && 
                         squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.state.turn && 
+                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
                         squares[leftTop.currentRow - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
                         !squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player && !suggestedKill ) {
@@ -244,7 +252,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.state.turn && 
+                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
                         squares[leftTop.currentRow - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player)
@@ -262,7 +270,7 @@ class Game extends Component {
 
                     if ( squares[rightTop.currentRow][rightTop.currentColumn] && 
                         squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.state.turn && 
+                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
                         squares[rightTop.currentRow - 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
                         !squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player && 
@@ -296,7 +304,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.state.turn && 
+                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
                         squares[rightTop.currentRow - 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player)
@@ -313,7 +321,7 @@ class Game extends Component {
 
                     if (squares[leftBottom.currentRow][leftBottom.currentColumn] && 
                         squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.state.turn && 
+                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
                         squares[leftBottom.currentRow + 1] &&
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
                         !squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player && !suggestedKill ) {
@@ -346,7 +354,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.state.turn && 
+                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
                         squares[leftBottom.currentRow + 1] &&
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player)
@@ -364,7 +372,7 @@ class Game extends Component {
                     
                     if ( squares[rightBottom.currentRow][rightBottom.currentColumn] && 
                         squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.state.turn && 
+                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
                         squares[rightBottom.currentRow + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
                         !squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player && 
@@ -398,7 +406,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.state.turn && 
+                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
                         squares[rightBottom.currentRow + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player)
@@ -408,59 +416,59 @@ class Game extends Component {
                     rightBottom.currentColumn = rightBottom.currentColumn + 1;
                 }
             }
-        } else if (!squares[row][column].king && this.state.turn === PLAYER_1) {
+        } else if (!squares[row][column].king && this.props.play.turn === PLAYER_1) {
 
-            if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.state.turn && !squares[row + 2][column + 2].player) {
+            if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn && !squares[row + 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row + 2][column + 2]);
             }
-            if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.state.turn && !squares[row + 2][column - 2].player) {
+            if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn && !squares[row + 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row + 2][column - 2]);
             }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.state.turn && !squares[row - 2][column + 2].player) {
+            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row - 2][column + 2]);
             }
-            if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.state.turn && !squares[row - 2][column - 2].player) {
+            if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn && !squares[row - 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row - 2][column - 2]);
             }
-        } else if (!squares[row][column].king && this.state.turn === PLAYER_2) {
-            if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.state.turn &&  !squares[row - 2][column - 2].player) {
+        } else if (!squares[row][column].king && this.props.play.turn === PLAYER_2) {
+            if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn &&  !squares[row - 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row - 2][column - 2]);
             }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.state.turn && !squares[row - 2][column + 2].player) {
+            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row - 2][column + 2]);
             }
-            if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.state.turn &&  !squares[row + 2][column - 2].player) {
+            if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn &&  !squares[row + 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row + 2][column - 2]);
             }
-            if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.state.turn &&  !squares[row + 2][column + 2].player) {
+            if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn &&  !squares[row + 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column + 1 
@@ -734,14 +742,16 @@ class Game extends Component {
     }
     
     _switchTurn () {
-        let turn = (this.state.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1;
-        this.setState({ turn }); 
+        let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
+        // this.setState({ turn }); 
+        emitSwitchTurn(turn)
+        this.props.switchTurn(turn)
     }
 
     render () {
         return (
             <div className="game">
-                <Description turn={this.state.turn} />
+                <Description turn={this.props.play.turn} />
                 <Board 
                     squares={this.state.squares} 
                     suggestedSquares={this.state.suggestedSquares}
@@ -756,6 +766,12 @@ class Game extends Component {
 
 }
 
+const mstp = ({ play }) => ({
+    play
+})
 
+const mdtp = dispatch => ({
+    switchTurn: turn => dispatch(switchTurn(turn))
+})
 
-export default Game;
+export default connect(mstp, mdtp)(Game);
