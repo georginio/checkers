@@ -132,6 +132,7 @@ class Game extends Component {
         })
     
         subscribeToSwitchTurn((err, turn) => {
+            this._resetKillTarget()
             this.props.switchTurn(turn)
         })
     }
@@ -140,22 +141,18 @@ class Game extends Component {
         this._startGame();
     }
 
-    componentDidUpdate() {
-        if (this.checkQuantity.black === 0) 
-            alert(PLAYER_1 + ' won game!');
-        else if (this.checkQuantity.white === 0)
-            alert(PLAYER_2 + 'won game!');
-    }
 
     handleCheckClick(e, row, column) {
         e.stopPropagation();
+        let { play } = this.props
 
-        let squares = this.state.squares.slice();
-        let check = squares[row][column];
+        if (play.turn === play.side && this.state.squares[row][column].player === play.turn) {
 
-        if (this.killTarget.length > 0) return;
-
-        if (this.props.play.turn === this.props.play.side && check.player === this.props.play.turn) {
+            let squares = this.state.squares.slice();
+            let check = squares[row][column];
+            
+            if (this.killTarget.length > 0) return;
+    
             this._resetKillTarget();
             this._deactivateAllchecks(squares);
 
@@ -165,7 +162,9 @@ class Game extends Component {
 
             this.activeRow = row;
             this.activeColumn = column;
-            this._suggestSquares(row, column, squares[row][column]);
+
+            let suggestedSquares = this._suggestSquares(row, column, squares[row][column]);
+            this.setState({ suggestedSquares })
         }
     }
 
@@ -174,7 +173,7 @@ class Game extends Component {
             this.mustMove && 
             this.isSuggested(row, column) && 
             this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn
-        ) this._move(row, column);
+        ) this._move(row, column)
   
     }
 
@@ -188,7 +187,9 @@ class Game extends Component {
         this.killTarget.push(target);
     }
 
-    _checkForKill(squares, suggestedSquares, row, column) {
+    _checkForKill(squares, row, column) {
+
+        let suggestedSquares = []
 
         if (squares[row][column].king) {
             // 4 criteria object
@@ -477,6 +478,8 @@ class Game extends Component {
                 suggestedSquares.push(squares[row + 2][column + 2]);
             }
         }
+
+        return suggestedSquares
     }
 
     _checkForKing(checker) {
@@ -501,6 +504,27 @@ class Game extends Component {
                 squares[i][j] = val;
             }
         } 
+    }
+
+    _checkForfinishGame = (squares, turn) => {
+        
+        if (this.checkQuantity.black === 0) 
+            return PLAYER_1
+        else if (this.checkQuantity.white === 0)
+            return PLAYER_2
+
+        let { play } = this.props
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (squares[i][j].player && squares[i][j].player !== play.side && turn !== play.side) {
+                    let suggested = this._suggestSquares(i, j, squares[i][j], squares, true)
+                    if (suggested.length > 0)
+                        return false
+                }
+            }
+        }
+
+        return play.side
     }
 
     _killProperCheck (startRow, startColumn, endRow, endColumn) {
@@ -551,7 +575,7 @@ class Game extends Component {
                 this.bannedDirection = 'BOTTOM_RIGHT';
             
             this._resetKillTarget();
-            this._checkForKill(squares, suggestedSquares, row, column);
+            suggestedSquares = this._checkForKill(squares, row, column);
 
         }
 
@@ -565,11 +589,16 @@ class Game extends Component {
         // if there is not additional kill deactivate active squares
         // switch turn
         if (suggestedSquares.length === 0) {
-            this._switchTurn();
+            let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
+            let winner = this._checkForfinishGame(squares, turn)
+
+            if (winner)
+               alert('winner is : ' + winner)
+            this._switchTurn(squares);
             this._deactivateAllchecks(squares);
             this.bannedDirection = null;
         }
-
+        
         // emit move
         emitMove(emitObj)
 
@@ -620,13 +649,17 @@ class Game extends Component {
         this.setState({ squares });
     }
 
-    _suggestSquares(row, column, activeChecker) {
-        let { squares } = this.state;
-        let suggestedSquares = [];
+    _suggestSquares(row, column, activeChecker, squaresArray, ignoreKillTarget) {
+        let suggestedSquares = []
+        let squares = squaresArray
+        
+        if (!squares)
+            squares = this.state.squares
 
         if (activeChecker.player && activeChecker.player === PLAYER_1 && !activeChecker.king) {
             
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
 
             if (suggestedSquares.length === 0) {
                 if (row < 7 && column > 0 && column <= 7 && !squares[row + 1][column - 1].player)
@@ -639,7 +672,8 @@ class Game extends Component {
        
         } else if (activeChecker.player && activeChecker.player === PLAYER_2 && !activeChecker.king) {
             
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
             
             if (suggestedSquares.length === 0) {
                 if (row <= 7 && row > 0 && column > 0 && !squares[row - 1][column - 1].player)
@@ -650,7 +684,8 @@ class Game extends Component {
 
         } else if (activeChecker.player && activeChecker.king) {
 
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
 
             let leftTop = {
                 currentRow: row - 1, 
@@ -738,13 +773,12 @@ class Game extends Component {
 
         }
 
-        this.setState({ suggestedSquares })
+        return suggestedSquares
 
     }
     
-    _switchTurn () {
+    _switchTurn (squares) {
         let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
-        // this.setState({ turn }); 
         emitSwitchTurn(turn)
         this.props.switchTurn(turn)
     }
