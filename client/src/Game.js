@@ -794,7 +794,7 @@ class Game extends Component {
                     isSuggested={this.isSuggested}
                     onCheckClick={this.handleCheckClick}
                     onSquareClick={this.handleSquareClick}
-                    rotate={this.props.play.side === PLAYER_1}
+                    side={this.props.play.side}
                 />
             </div>
         );

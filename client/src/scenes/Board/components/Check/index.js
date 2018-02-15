@@ -11,19 +11,19 @@ const styles = {
         position: 'absolute',
         top: '50%',
         left: '50%',
-        transform: 'translate(-50%, -50%)',
         backgroundSize: '80%',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: '50% 50%'
     }
 }
 
-const Check = ({ classes, color, active, onClick, offset, king }) => {
-    
+const Check = ({ classes, color, active, onClick, king, side }) => {
+
     let style = {
         backgroundColor: color, 
         'boxShadow': !active ? 'none' : '0 0 10px 5px #16A8C7',
         backgroundImage: king ? 'url('+ kingImg +')' : '',
+        transform: (king && side === 'Player 1') ? "translate(-50%, -50%) rotate(180deg)" : "translate(-50%, -50%)"
     }   
 
     return (

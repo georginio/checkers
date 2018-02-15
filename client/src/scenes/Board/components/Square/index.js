@@ -12,7 +12,7 @@ const styles = {
     }
 }
 
-const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClick, suggested, king }) => {
+const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClick, suggested, king, side }) => {
     let check = null;
     let checkColor = null;
 
@@ -34,6 +34,7 @@ const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClic
                 color={checkColor} 
                 active={active} 
                 king={king}
+                side={side}
                 onClick={(e) => onCheckClick(e, row, column) } 
             /> 
         );

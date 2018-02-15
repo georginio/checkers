@@ -15,10 +15,10 @@ const styles = {
     }
 }
 
-const Board = ({ classes, squares, isSuggested, onCheckClick, onSquareClick, rotate }) => {
+const Board = ({ classes, squares, isSuggested, onCheckClick, onSquareClick, side }) => {
 
     let rotationStyle = {
-        transform: rotate ? "rotate(180deg)" : "none"
+        transform: side === 'Player 1' ? "rotate(180deg)" : "none"
     }
 
     const renderSquares = []
@@ -40,6 +40,7 @@ const Board = ({ classes, squares, isSuggested, onCheckClick, onSquareClick, rot
                 {...props}
                 key={key}
                 suggested={suggested}
+                side={side}
                 onCheckClick={onCheckClick}
                 onSquareClick={onSquareClick}
             />); 
