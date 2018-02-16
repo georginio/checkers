@@ -1,22 +1,35 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
+import { withStyles } from 'material-ui/styles'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
 
-import './Game.css';
-
 import { switchTurn } from './actions/playActions'
-
 import {
     subscribeToMove,
+    subscribeToSwitchTurn,
+    subscribeToEndGame,
     emitMove,
     emitSwitchTurn,
-    subscribeToSwitchTurn
+    emitEndGame
 } from './socket'
+
+import fastEndState from './data/fastEndState'
+// import defaultState from './data/defaultState'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
+
+const styles = {
+    game: {
+        display: 'grid',
+        gridTemplateColumns: '30% 70%',
+        height: '100%',
+        width: '100%',
+        position: 'relative'
+    }
+}
 
 class Game extends Component {
 
@@ -24,88 +37,7 @@ class Game extends Component {
         super(props);
 
         this.state = {
-            squares: [
-                [
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 135, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 315, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 495, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 675, y: 45 }
-                ], 
-                [
-                    { player: PLAYER_1, king: false, active: false, x: 45, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 225, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 405, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 585, y: 135 }, 
-                    null
-                ], 
-                [
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 135, y: 225 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 315, y: 225 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 495, y: 225 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 675, y: 225 }
-                ], 
-                [
-                    { x: 45, y: 315 }, 
-                    null,
-                    { x: 225, y: 315 }, 
-                    null,
-                    { x: 405, y: 315 }, 
-                    null, 
-                    { x: 585, y: 315 }, 
-                    null,
-                ], 
-                [
-                    null, 
-                    { x: 135, y: 405 }, 
-                    null,
-                    { x: 315, y: 405 }, 
-                    null, 
-                    { x: 495, y: 405 }, 
-                    null,
-                    { x: 675, y: 405 }
-                ], 
-                [
-                    { player: PLAYER_2, king: false, active: false, x: 45, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 225, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 405, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 585, y: 495 }, 
-                    null
-                ],  
-                [
-                    null,  
-                    { player: PLAYER_2, king: false, active: false, x: 135, y: 585 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 315, y: 585 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 495, y: 585 }, 
-                    null,  
-                    { player: PLAYER_2, king: false, active: false, x: 675, y: 585 }
-                ],
-                [
-                    { player: PLAYER_2, king: false, active: false, x: 45, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 225, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 405, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 585, y: 675 }, 
-                    null
-                ]  
-            ],
+            squares: fastEndState,
             turn: PLAYER_1,
             suggestedSquares: []
         };
@@ -134,6 +66,11 @@ class Game extends Component {
         subscribeToSwitchTurn((err, turn) => {
             this._resetKillTarget()
             this.props.switchTurn(turn)
+        })
+
+        subscribeToEndGame((err, winner) => {
+            console.log('subscriber winner is ' + winner)
+            // alert(winner + 'won a game!')
         })
     }
 
@@ -592,8 +529,10 @@ class Game extends Component {
             let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
             let winner = this._checkForfinishGame(squares, turn)
 
-            if (winner)
-               alert('winner is : ' + winner)
+            if (winner) {
+                emitEndGame(winner)
+                console.log('winner is : ' + winner)
+            }
             this._switchTurn(squares);
             this._deactivateAllchecks(squares);
             this.bannedDirection = null;
@@ -784,9 +723,10 @@ class Game extends Component {
     }
 
     render () {
+        let { classes } = this.props
 
         return (
-            <div className="game">
+            <div className={classes.game}>
                 <Description turn={this.props.play.turn} />
                 <Board 
                     squares={this.state.squares} 
@@ -810,4 +750,4 @@ const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn))
 })
 
-export default connect(mstp, mdtp)(Game);
+export default connect(mstp, mdtp)(withStyles(styles)(Game));

@@ -15,6 +15,7 @@ let subscribeToGameStart = cb => socket.on('game-start', options => cb(null, opt
 //game subs
 let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
 let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
+let subscribeToEndGame = cb => socket.on('end-game', winner => cb(null, winner))
 
 // emitters
 let emitMessage = message => socket.emit('message', message)
@@ -27,6 +28,7 @@ let emitJoinRoom = room => socket.emit('join-room', room)
 // game emitters
 let emitMove = data => socket.emit('check-move', data)
 let emitSwitchTurn = turn => socket.emit('switch-turn', turn)
+let emitEndGame = winner => socket.emit('end-game', winner)
 
 export {
     // subs
@@ -41,6 +43,7 @@ export {
     // game subs
     subscribeToMove,
     subscribeToSwitchTurn,
+    subscribeToEndGame,
     // emits
     emitMessage,
     emitNewUser,
@@ -50,6 +53,7 @@ export {
     emitJoinRoom,
     // game emits 
     emitMove,
-    emitSwitchTurn
+    emitSwitchTurn,
+    emitEndGame
 }
 

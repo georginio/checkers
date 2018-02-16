@@ -58,6 +58,10 @@ module.exports = (io, users, rooms, redisClient) => {
         socket.on('switch-turn', (turn) => {
             socket.broadcast.emit('switch-turn', turn);
         });
+
+        socket.on('end-game', (winner) => {
+            socket.broadcast.emit('end-game', winner);
+        });
         
     });
 }
