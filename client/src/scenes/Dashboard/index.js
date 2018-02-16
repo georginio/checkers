@@ -29,10 +29,10 @@ import {
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
-import FormHOC from './components/FormHOC/FormHOC'
-import NotificationDialog from './components/Dialogs/NotificationDialog'
-import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
-import AlertDialog from './components/Dialogs/AlertDialog'
+import FormHOC from './components/FormHOC/FormHOC' 
+import NotificationDialog from '../../components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from '../../components/Dialogs/WaitNotificationDialog'
+import AlertDialog from '../../components/Dialogs/AlertDialog'
 
 const styles = {
     dashboard: {
