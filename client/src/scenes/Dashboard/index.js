@@ -76,6 +76,12 @@ class Dashboard extends Component {
                 username: invitation.from,
                 id: invitation.deliverer
             }
+            this.props.setPlayOptions({
+                opponent: {
+                    username: invitation.from,
+                    id: invitation.deliverer
+                }
+            })
         })
 
         subscribeToDeclinedInvitation((err, { username }) => {
@@ -86,12 +92,19 @@ class Dashboard extends Component {
             })
         })
 
-        subscribeToAccpt((err, { roomName }) => {
+        subscribeToAccpt((err, { roomName, from, deliverer }) => {
+
+            this.props.setPlayOptions({
+                opponent: {
+                    username: from,
+                    id: deliverer
+                }
+            })
             emitJoinRoom({ roomName, username: this.props.username })
         })
 
         subscribeToGameStart((err, { roomName, secondPlayer }) => {
-            let options = {}
+            let options = { roomName }
 
             if (secondPlayer === this.props.username) {
                 options.side = 'Player 2'
@@ -148,7 +161,6 @@ class Dashboard extends Component {
     emitInvitation(id, username) {
         emitInvitation({ 
             id, 
-            username,
             from: this.props.username  
         })
 
@@ -166,7 +178,7 @@ class Dashboard extends Component {
 
     acceptInvitation = () => {
         emitAccept({
-            username: this.props.username,
+            from: this.props.username,
             deliverer: this.deliverer
         })
         
@@ -205,8 +217,8 @@ class Dashboard extends Component {
                             handleClose={this.handleClose} 
                             context={this.state.notifContext}
                             progress={this.state.progressCompleted}
-                            acceptInvitation={this.acceptInvitation}
-                            declineInvitation={this.declineInvitation}
+                            accept={this.acceptInvitation}
+                            decline={this.declineInvitation}
                         /> 
                         <WaitNotificationDialog 
                             progress={this.state.progressCompleted}

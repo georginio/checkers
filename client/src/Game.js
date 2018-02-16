@@ -2,10 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 
-import Board from './scenes/Board';
-import Description from './scenes/Description';
-
-import { switchTurn } from './actions/playActions'
 import {
     subscribeToMove,
     subscribeToSwitchTurn,
@@ -15,8 +11,15 @@ import {
     emitEndGame
 } from './socket'
 
+import { switchTurn } from './actions/playActions'
+
 import fastEndState from './data/fastEndState'
-// import defaultState from './data/defaultState'
+import defaultState from './data/defaultState'
+
+import Board from './scenes/Board';
+import Description from './scenes/Description';
+import NotificationDialog from './components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
@@ -39,7 +42,12 @@ class Game extends Component {
         this.state = {
             squares: fastEndState,
             turn: PLAYER_1,
-            suggestedSquares: []
+            suggestedSquares: [],
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0,
+            alertContent: ''
         };
         
         this.activeColumn = null;
@@ -69,15 +77,64 @@ class Game extends Component {
         })
 
         subscribeToEndGame((err, winner) => {
-            console.log('subscriber winner is ' + winner)
-            // alert(winner + 'won a game!')
+            this._handleEndGame(winner)
         })
     }
 
     componentWillMount() {
         this._startGame();
     }
+    // looser accepted to replay
+    acceptReplay = () => {
+        this.handleClose()
+        this.setState({ 
+            squares: defaultState,
+            suggestedSquares: [],
+            turn: PLAYER_1 
+        })
+        this._startGame()
+    }
+    // looser declined to replay
+    declineReplay = () => {
+        this.handleClose()
+    }
 
+    _handleEndGame = (winner) => {
+        if (this.props.play.side !== winner)
+            this.handleOpen("You lost!", "Do you want to replay?")
+        else if (this.props.play.side === winner) 
+            this.handleWaitOpen("You win, please wait for second!")
+    }
+
+    handleClose() {
+        this.setState({ 
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0 
+        })
+
+        clearInterval(this.time)
+    }
+    
+    handleOpen(title, message) {
+        this.setState({ 
+            playNotifOpen: true,
+            notificationTitle: title,
+            notifContext: message
+        })
+
+        this.time = setInterval(this._progress, 500)
+    }
+
+    handleWaitOpen(title) {
+        this.setState({ 
+            waitNotifOpen: true,
+            notificationTitle: title
+        })
+
+        this.time = setInterval(this._progress, 500)
+    }
 
     handleCheckClick(e, row, column) {
         e.stopPropagation();
@@ -531,8 +588,9 @@ class Game extends Component {
 
             if (winner) {
                 emitEndGame(winner)
-                console.log('winner is : ' + winner)
+                this._handleEndGame(winner)
             }
+
             this._switchTurn(squares);
             this._deactivateAllchecks(squares);
             this.bannedDirection = null;
@@ -558,6 +616,15 @@ class Game extends Component {
             squares[killTarget.row][killTarget.column] = killTarget
         
         this.setState(squares)
+    }
+
+    _progress = () => {
+        let { progressCompleted } = this.state
+
+        if (progressCompleted === 100) 
+            this.handleClose()
+        else 
+            this.setState({ progressCompleted: progressCompleted + 4 })
     }
 
     _resetKillTarget() {
@@ -735,6 +802,20 @@ class Game extends Component {
                     onCheckClick={this.handleCheckClick}
                     onSquareClick={this.handleSquareClick}
                     side={this.props.play.side}
+                />
+                <NotificationDialog 
+                    open={this.state.playNotifOpen}
+                    handleClose={this.handleClose} 
+                    context={this.state.notifContext}
+                    title={this.state.notificationTitle}
+                    progress={this.state.progressCompleted}
+                    accept={this.acceptReplay}
+                    decline={this.declineReplay}
+                />
+                <WaitNotificationDialog 
+                    open={this.state.waitNotifOpen}
+                    title={this.state.notificationTitle}
+                    progress={this.state.progressCompleted}
                 />
             </div>
         );

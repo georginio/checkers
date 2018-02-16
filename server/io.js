@@ -20,15 +20,15 @@ module.exports = (io, users, rooms, redisClient) => {
             socket.to(invitation.id).emit('play-invitation', invitation);
         });
 
-        socket.on('accept-invitation', ({ username, deliverer }) => {
-            let roomName = username + deliverer.username; 
+        socket.on('accept-invitation', ({ from, deliverer }) => {
+            let roomName = from + deliverer.username; 
             rooms[roomName] = {
                 player1: deliverer.username,
-                player2: username
+                player2: from
             };
             socket.join(roomName);
-            socket.to(deliverer.id).emit('accepted-invitation', { roomName });
-        })
+            socket.to(deliverer.id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
+        });
 
         socket.on('decline-invitation', (decline) => {
             socket.to(decline.deliverer).emit('decline-invitation', decline);

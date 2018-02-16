@@ -1,12 +1,17 @@
 const initialState = {
     side: '',
-    turn: ''
+    turn: '',
+    opponent: {
+        usernanme: '',
+        id: ''
+    },
+    roomName: ''
 }
 
 export default function sideReducer (state = initialState, action) {
     switch (action.type) {
         case 'SET_OPTIONS': 
-            return action.payload
+            return Object.assign({}, state, {...action.payload})
         case 'SWITCH_TURN':
             return Object.assign({}, state, { turn: action.payload })    
         default:

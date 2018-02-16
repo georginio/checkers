@@ -12,14 +12,14 @@ const styles = {
     }
 }
 
-const WaitNotificationDialog = ({ classes, open, progress }) =>
+const WaitNotificationDialog = ({ classes, open, title = "Invitation Sent", progress }) =>
     <Dialog
         open={open}
         disableBackdropClick={true}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
     >
-        <DialogTitle id="alert-dialog-title">Invitation Sent</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
         <DialogContent className={classes.root}>
             <LinearProgress color="secondary" variant="determinate" value={progress} />
         </DialogContent>
