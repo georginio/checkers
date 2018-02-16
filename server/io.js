@@ -63,5 +63,9 @@ module.exports = (io, users, rooms, redisClient) => {
             socket.broadcast.emit('end-game', winner);
         });
         
+        // after end game emitters
+        socket.on('decline-replay', () => {
+            socket.broadcast.emit('declined-replay');
+        });
     });
 }

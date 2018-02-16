@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
+import { withRouter } from 'react-router-dom'
 
 import {
     subscribeToMove,
     subscribeToSwitchTurn,
     subscribeToEndGame,
+    subscribeToDeclinedGame,
     emitMove,
     emitSwitchTurn,
-    emitEndGame
+    emitEndGame,
+    emitDeclineReplay
 } from './socket'
 
 import { switchTurn } from './actions/playActions'
@@ -79,6 +82,11 @@ class Game extends Component {
         subscribeToEndGame((err, winner) => {
             this._handleEndGame(winner)
         })
+
+        subscribeToDeclinedGame(err => {
+            this.props.history.push('/')
+        })
+        
     }
 
     componentWillMount() {
@@ -96,7 +104,9 @@ class Game extends Component {
     }
     // looser declined to replay
     declineReplay = () => {
+        emitDeclineReplay()
         this.handleClose()
+        this.props.history.push('/')
     }
 
     _handleEndGame = (winner) => {
@@ -622,7 +632,7 @@ class Game extends Component {
         let { progressCompleted } = this.state
 
         if (progressCompleted === 100) 
-            this.handleClose()
+            this.props.history.push('/')
         else 
             this.setState({ progressCompleted: progressCompleted + 4 })
     }
@@ -831,4 +841,4 @@ const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn))
 })
 
-export default connect(mstp, mdtp)(withStyles(styles)(Game));
+export default withRouter(connect(mstp, mdtp)(withStyles(styles)(Game)))
