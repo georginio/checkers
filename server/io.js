@@ -42,7 +42,7 @@ module.exports = (io, users, rooms, redisClient) => {
 
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);
-
+            console.log(index, users[index], 'bye bye')
             if (index !== -1) {
                 socket.broadcast.emit('logout', users[index].id);
                 users.splice(index, 1);

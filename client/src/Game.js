@@ -641,7 +641,7 @@ class Game extends Component {
         let { progressCompleted } = this.state
 
         if (progressCompleted === 100) 
-            this.props.history.push('/')
+            window.location = "/"
         else 
             this.setState({ progressCompleted: progressCompleted + 4 })
     }
