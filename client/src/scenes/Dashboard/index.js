@@ -6,8 +6,9 @@ import { withRouter } from 'react-router-dom'
 
 import { 
     saveActiveUsers, 
-    addActiveUser, 
-    userLogout 
+    addActiveUser,
+    saveUsername, 
+    userLogout,
 } from '../../actions/userActions'
 import { saveMessage } from '../../actions/messageActions'
 import { setPlayOptions } from '../../actions/playActions'
@@ -24,7 +25,8 @@ import {
     emitInvitation,
     emitDeclineInvitation,
     emitAccept,
-    emitJoinRoom
+    emitJoinRoom,
+    emitNewUser
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -55,7 +57,8 @@ class Dashboard extends Component {
         }
 
         subscribeToNewUser((err, user) => {
-            this.props.addActiveUser(user)
+            if (this.props && this.props.activeUsers && user)
+                this.props.addActiveUser(user)
         })
 
         subscribeToUserLogOut((err, id) => {
@@ -115,7 +118,7 @@ class Dashboard extends Component {
             }
 
             this.props.setPlayOptions(options)
-            this.props.history.push('/game')
+            this.props.history.push(`/game/${roomName}`)
 
         })
 
@@ -123,6 +126,15 @@ class Dashboard extends Component {
         this.handleClose = this.handleClose.bind(this)
         this.handleOpen = this.handleOpen.bind(this)
         this.handleWaitOpen = this.handleWaitOpen.bind(this)
+    }
+
+    componentDidMount() {
+        let username = this.props.username || window.localStorage.getItem('username')
+
+        if (username) {
+            emitNewUser(username)
+            this.props.saveUsername(username)
+        }
     }
 
     componentWillUnmount() {
@@ -246,9 +258,10 @@ const mdtp = dispatch => ({
     addActiveUser: user => dispatch(addActiveUser(user)),
     userLogout: id => dispatch(userLogout(id)),
     saveMessage: message => dispatch(saveMessage(message)),
-    setPlayOptions: side => dispatch(setPlayOptions(side))
+    setPlayOptions: side => dispatch(setPlayOptions(side)),
+    saveUsername: username => dispatch(saveUsername(username))
 })
 
 Dashboard = withStyles(styles)(Dashboard)
 
-export default withRouter(connect(mstp, mdtp)(FormHOC(Dashboard)))
+export default connect(mstp, mdtp)(withRouter(FormHOC(Dashboard)))

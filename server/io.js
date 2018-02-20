@@ -21,7 +21,7 @@ module.exports = (io, users, rooms, redisClient) => {
         });
 
         socket.on('accept-invitation', ({ from, deliverer }) => {
-            let roomName = from + deliverer.username; 
+            let roomName = from + deliverer.username + Date.now().toString(); 
             rooms[roomName] = {
                 player1: deliverer.username,
                 player2: from

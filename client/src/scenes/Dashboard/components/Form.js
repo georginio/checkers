@@ -9,8 +9,6 @@ import RenderedTextField from './RenderedTextField'
 import { asyncValidate, validate } from './validation'
 import { saveUsername } from '../../../actions/userActions'
 
-import { emitNewUser } from '../../../socket'
-
 const styles = {
     button: {
         marginTop: '5px'
@@ -32,8 +30,8 @@ class Form extends Component {
     }
 
     submitUsername(values) {
-        emitNewUser(values.username)
         this.props.saveUsername(values.username)
+        window.localStorage.setItem('username', values.username)
     }
 
     render () {

@@ -14,7 +14,7 @@ import {
     emitDeclineReplay
 } from './socket'
 
-import { switchTurn } from './actions/playActions'
+import { switchTurn, resetOptions } from './actions/playActions'
 
 import fastEndState from './data/fastEndState'
 import defaultState from './data/defaultState'
@@ -40,7 +40,7 @@ const styles = {
 class Game extends Component {
 
     constructor(props) {
-        super(props);
+        super(props)
 
         this.state = {
             squares: fastEndState,
@@ -51,48 +51,43 @@ class Game extends Component {
             alertOpen: false,
             progressCompleted: 0,
             alertContent: ''
-        };
+        }
         
-        this.activeColumn = null;
-        this.activeRow = null;
+        this.activeColumn = null
+        this.activeRow = null
 
-        this.mustMove = false;
-        this.bannedDirection = null;
+        this.mustMove = false
+        this.bannedDirection = null
 
-        this.killTarget = [];
-        this.killBy = null;
+        this.killTarget = []
+        this.killBy = null
         this.checkQuantity = {
             white: 12,
             black: 12
-        };
+        }
 
-        this.handleCheckClick = this.handleCheckClick.bind(this);
-        this.handleSquareClick = this.handleSquareClick.bind(this);
-        this.isSuggested = this.isSuggested.bind(this);
+        this.handleCheckClick = this.handleCheckClick.bind(this)
+        this.handleSquareClick = this.handleSquareClick.bind(this)
+        this.isSuggested = this.isSuggested.bind(this)
 
-        subscribeToMove((err, move) => {
-            this._opponentMove(move)
-        })
+        subscribeToMove((err, move) => this._opponentMove(move))
     
         subscribeToSwitchTurn((err, turn) => {
             this._resetKillTarget()
             this.props.switchTurn(turn)
         })
 
-        subscribeToEndGame((err, winner) => {
-            this._handleEndGame(winner)
-        })
+        subscribeToEndGame((err, winner) => this._handleEndGame(winner))
 
-        subscribeToDeclinedGame(err => {
-            this.props.history.push('/')
-        })
+        subscribeToDeclinedGame(err => this._endGame())
         
     }
 
     componentWillMount() {
-        this._startGame();
+        let squares = this._initBoard()
+        this.setState({ squares })
     }
-    // looser accepted to replay
+
     acceptReplay = () => {
         this.handleClose()
         this.setState({ 
@@ -100,20 +95,12 @@ class Game extends Component {
             suggestedSquares: [],
             turn: PLAYER_1 
         })
-        this._startGame()
+        this._initBoard()
     }
     // looser declined to replay
     declineReplay = () => {
         emitDeclineReplay()
-        this.handleClose()
-        this.props.history.push('/')
-    }
-
-    _handleEndGame = (winner) => {
-        if (this.props.play.side !== winner)
-            this.handleOpen("You lost!", "Do you want to replay?")
-        else if (this.props.play.side === winner) 
-            this.handleWaitOpen("You win, please wait for second!")
+        this._endGame()
     }
 
     handleClose() {
@@ -123,8 +110,6 @@ class Game extends Component {
             alertOpen: false,
             progressCompleted: 0 
         })
-
-        clearInterval(this.time)
     }
     
     handleOpen(title, message) {
@@ -189,6 +174,27 @@ class Game extends Component {
 
     _addKillTarget(target) {
         this.killTarget.push(target);
+    }
+
+    _checkForfinishGame = (squares, turn) => {
+        
+        if (this.checkQuantity.black === 0) 
+            return PLAYER_1
+        else if (this.checkQuantity.white === 0)
+            return PLAYER_2
+
+        let { play } = this.props
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (squares[i][j].player && squares[i][j].player !== play.side && turn !== play.side) {
+                    let suggested = this._suggestSquares(i, j, squares[i][j], squares, true)
+                    if (suggested.length > 0)
+                        return false
+                }
+            }
+        }
+
+        return play.side
     }
 
     _checkForKill(squares, row, column) {
@@ -510,25 +516,28 @@ class Game extends Component {
         } 
     }
 
-    _checkForfinishGame = (squares, turn) => {
+    _endGame = () => {
+        clearInterval(this.time)
+        this.props.resetOptions()
         
-        if (this.checkQuantity.black === 0) 
-            return PLAYER_1
-        else if (this.checkQuantity.white === 0)
-            return PLAYER_2
+        this.setState({
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0, 
+            turn: PLAYER_1,
+            suggestedSquares: [],
+        }, () => {
+            window.location = "/"
+        })
 
-        let { play } = this.props
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 8; j++) {
-                if (squares[i][j].player && squares[i][j].player !== play.side && turn !== play.side) {
-                    let suggested = this._suggestSquares(i, j, squares[i][j], squares, true)
-                    if (suggested.length > 0)
-                        return false
-                }
-            }
-        }
+    }
 
-        return play.side
+    _handleEndGame = (winner) => {
+        if (this.props.play.side !== winner)
+            this.handleOpen("You lost!", "Do you want to replay?")
+        else if (this.props.play.side === winner) 
+            this.handleWaitOpen("You win, please wait for second!")
     }
 
     _killProperCheck (startRow, startColumn, endRow, endColumn) {
@@ -641,8 +650,9 @@ class Game extends Component {
         this.killTarget = [];
     }
 
-    _startGame() {
-        let squares = this.state.squares.slice();
+    _initBoard(initSquares) {
+
+        let squares = initSquares || this.state.squares.slice() 
 
         for (let i = 0; i < squares.length; i++) {
             for (let j = 0; j < squares.length; j++) {
@@ -662,7 +672,7 @@ class Game extends Component {
             }
         } 
 
-        this.setState({ squares });
+        return squares
     }
 
     _suggestSquares(row, column, activeChecker, squaresArray, ignoreKillTarget) {
@@ -813,7 +823,7 @@ class Game extends Component {
                     onSquareClick={this.handleSquareClick}
                     side={this.props.play.side}
                 />
-                <NotificationDialog 
+                <NotificationDialog      
                     open={this.state.playNotifOpen}
                     handleClose={this.handleClose} 
                     context={this.state.notifContext}
@@ -838,7 +848,8 @@ const mstp = ({ play }) => ({
 })
 
 const mdtp = dispatch => ({
-    switchTurn: turn => dispatch(switchTurn(turn))
+    switchTurn: turn => dispatch(switchTurn(turn)),
+    resetOptions: () => dispatch(resetOptions())
 })
 
 export default withRouter(connect(mstp, mdtp)(withStyles(styles)(Game)))

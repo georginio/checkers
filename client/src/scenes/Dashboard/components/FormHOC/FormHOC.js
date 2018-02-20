@@ -11,7 +11,7 @@ const styles = {
 const FormHOC = WrappedComponent =>
     class FormHOC extends Component {
         render () {
-            let { username } = this.props
+            let username = this.props.username || window.localStorage.getItem('username') 
 
             if (!username)
                 return (

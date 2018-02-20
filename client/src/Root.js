@@ -3,14 +3,14 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { Provider } from 'react-redux'
 
 import Dashboard from './scenes/Dashboard'
-import App from './App'
+import Game from './Game'
 
 const Root = ({ store }) =>
     <Provider store={store}>
         <Router>
             <div>
                 <Route exact path="/" component={Dashboard} />
-                <Route exact path="/game" component={App} />
+                <Route path="/game/:roomname" component={Game} />
             </div>
         </Router>
     </Provider>
