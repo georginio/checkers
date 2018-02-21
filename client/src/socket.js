@@ -13,6 +13,8 @@ let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null,
 let subscribeToGameStart = cb => socket.on('game-start', options => cb(null, options))
 let subscribeToDeclinedGame = cb => socket.on('declined-replay', () => cb(null))
 let subscribeToRestartGame = cb => socket.on('restart-game', () => cb(null))
+let subscribeToDisconnect = cb => socket.on('disconnected-user', () => cb(null))
+
 //game subs
 let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
 let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
@@ -45,6 +47,7 @@ export {
     subscribeToGameStart,
     subscribeToDeclinedGame,
     subscribeToRestartGame,
+    subscribeToDisconnect,
     // game subs
     subscribeToMove,
     subscribeToSwitchTurn,

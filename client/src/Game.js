@@ -9,6 +9,7 @@ import {
     subscribeToEndGame,
     subscribeToDeclinedGame,
     subscribeToRestartGame,
+    subscribeToDisconnect,
     emitMove,
     emitSwitchTurn,
     emitEndGame,
@@ -90,6 +91,15 @@ class Game extends Component {
 
             let squares = this._initBoard(subMap(fastEndState))
             this.setState({ squares }, () => console.log(this.state.squares))
+        })
+
+        subscribeToDisconnect(err => {
+            this.setState({ 
+                waitNotifOpen: true,
+                notificationTitle: "Opponent has been disconnected!"
+            })
+    
+            this.time = setInterval(this._progress, 500)
         })
         
     }
@@ -678,7 +688,7 @@ class Game extends Component {
     }
 
     _initBoard(initSquares) {
-        console.log(initSquares)
+
         let squares = initSquares || this.state.squares.slice() 
 
         for (let i = 0; i < squares.length; i++) {

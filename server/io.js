@@ -6,8 +6,13 @@ module.exports = (io, users, rooms, redisClient) => {
 
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);
+            let gameIndex = games.findIndex(game => game.player1.id === socket.id || game.player2.id === socket.id);
 
-            if (index !== -1) {
+            if (gameIndex > -1) {
+                io.to(games[gameIndex].roomname).emit('disconnected-user');
+            }
+
+            if (index > -1) {
                 socket.broadcast.emit('logout', users[index].id);
                 users.splice(index, 1);
             }
