@@ -8,16 +8,18 @@ import {
     subscribeToSwitchTurn,
     subscribeToEndGame,
     subscribeToDeclinedGame,
+    subscribeToRestartGame,
     emitMove,
     emitSwitchTurn,
     emitEndGame,
-    emitDeclineReplay
+    emitDeclineReplay,
+    emitAcceptReplay
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
 
 import fastEndState from './data/fastEndState'
-import defaultState from './data/defaultState'
+// import defaultState from './data/defaultState'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
@@ -37,13 +39,15 @@ const styles = {
     }
 }
 
+const subMap = arr => arr.map(sub => sub.map(subsub => subsub))
+
 class Game extends Component {
 
     constructor(props) {
         super(props)
 
         this.state = {
-            squares: fastEndState,
+            squares: subMap(fastEndState),
             turn: PLAYER_1,
             suggestedSquares: [],
             playNotifOpen: false,
@@ -60,7 +64,6 @@ class Game extends Component {
         this.bannedDirection = null
 
         this.killTarget = []
-        this.killBy = null
         this.checkQuantity = {
             white: 12,
             black: 12
@@ -80,6 +83,14 @@ class Game extends Component {
         subscribeToEndGame((err, winner) => this._handleEndGame(winner))
 
         subscribeToDeclinedGame(err => this._endGame())
+
+        subscribeToRestartGame(err => {
+            this.handleClose()
+            this.initProps()
+
+            let squares = this._initBoard(subMap(fastEndState))
+            this.setState({ squares }, () => console.log(this.state.squares))
+        })
         
     }
 
@@ -88,18 +99,32 @@ class Game extends Component {
         this.setState({ squares })
     }
 
+    initProps () {
+        this.activeColumn = null
+        this.activeRow = null
+
+        this.mustMove = false
+        this.bannedDirection = null
+
+        this.killTarget = []
+        this.checkQuantity = {
+            white: 12,
+            black: 12
+        }
+    }
+
     acceptReplay = () => {
         this.handleClose()
         this.setState({ 
-            squares: defaultState,
             suggestedSquares: [],
             turn: PLAYER_1 
         })
-        this._initBoard()
+        
+        emitAcceptReplay(this.props.play.opponent.id)
     }
     // looser declined to replay
     declineReplay = () => {
-        emitDeclineReplay()
+        emitDeclineReplay(this.props.play.opponent.id)
         this._endGame()
     }
 
@@ -110,6 +135,8 @@ class Game extends Component {
             alertOpen: false,
             progressCompleted: 0 
         })
+
+        clearInterval(this.time)
     }
     
     handleOpen(title, message) {
@@ -651,7 +678,7 @@ class Game extends Component {
     }
 
     _initBoard(initSquares) {
-
+        console.log(initSquares)
         let squares = initSquares || this.state.squares.slice() 
 
         for (let i = 0; i < squares.length; i++) {

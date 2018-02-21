@@ -1,6 +1,17 @@
+const Game = require('./src/Game');
+const games = [];
 module.exports = (io, users, rooms, redisClient) => {
 
     io.on('connection', (socket) => {
+
+        socket.on('disconnect', () => {
+            let index = users.findIndex(user => user.id === socket.id);
+
+            if (index !== -1) {
+                socket.broadcast.emit('logout', users[index].id);
+                users.splice(index, 1);
+            }
+        });
 
         socket.on('message', (message) => {
             socket.broadcast.emit('message', message);
@@ -15,24 +26,28 @@ module.exports = (io, users, rooms, redisClient) => {
             socket.broadcast.emit('new-user', user);
         });
 
+        // before game emitters 
         socket.on('play-invitation', (invitation) => {
             invitation.deliverer = socket.id;
             socket.to(invitation.id).emit('play-invitation', invitation);
         });
 
         socket.on('accept-invitation', ({ from, deliverer }) => {
-            let roomName = from + deliverer.username + Date.now().toString(); 
+            let { username, id } = deliverer;
+            let roomName = from + username + Date.now().toString(); 
+            
             rooms[roomName] = {
-                player1: deliverer.username,
+                player1: username,
                 player2: from
             };
             socket.join(roomName);
-            socket.to(deliverer.id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
+            socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
+
+            let game = new Game(deliverer, { username: from, id: socket.id }, roomName);
+            games.push(game);
         });
 
-        socket.on('decline-invitation', (decline) => {
-            socket.to(decline.deliverer).emit('decline-invitation', decline);
-        });
+        socket.on('decline-invitation', (decline) => socket.to(decline.deliverer).emit('decline-invitation', decline));
 
         socket.on('join-room', ({ roomName, username }) => {
             socket.join(roomName);
@@ -40,14 +55,20 @@ module.exports = (io, users, rooms, redisClient) => {
             io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
         })
 
-        socket.on('disconnect', () => {
-            let index = users.findIndex(user => user.id === socket.id);
+        // after end game emitters
+        socket.on('accept-replay', (id) => {
+            let game = games.find(game => game.player1.id === id || game.player2.id == id);
+            if (game)
+                io.to(game.roomname).emit('restart-game')
+        })
 
-            if (index !== -1) {
-                socket.broadcast.emit('logout', users[index].id);
-                users.splice(index, 1);
-            }
+        socket.on('decline-replay', (id) => {
+            socket.broadcast.emit('declined-replay');
 
+            let index = games.findIndex(game => game.player1.id === id || game.player2.id == id);
+            
+            if (index > -1)
+                games.splice(index, 1);
         });
         
         // listen for game emitters
@@ -63,9 +84,6 @@ module.exports = (io, users, rooms, redisClient) => {
             socket.broadcast.emit('end-game', winner);
         });
         
-        // after end game emitters
-        socket.on('decline-replay', () => {
-            socket.broadcast.emit('declined-replay');
-        });
+       
     });
 }

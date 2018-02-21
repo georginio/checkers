@@ -12,7 +12,7 @@ let subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', declin
 let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
 let subscribeToGameStart = cb => socket.on('game-start', options => cb(null, options))
 let subscribeToDeclinedGame = cb => socket.on('declined-replay', () => cb(null))
-
+let subscribeToRestartGame = cb => socket.on('restart-game', () => cb(null))
 //game subs
 let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
 let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
@@ -25,7 +25,9 @@ let emitInvitation = invitation => socket.emit('play-invitation', invitation)
 let emitDeclineInvitation = decline => socket.emit('decline-invitation', decline)
 let emitAccept = accept => socket.emit('accept-invitation', accept)
 let emitJoinRoom = room => socket.emit('join-room', room)
-let emitDeclineReplay = () => socket.emit('decline-replay') 
+let emitDeclineReplay = opponentId => socket.emit('decline-replay', opponentId) 
+let emitAcceptReplay = opponentId => socket.emit('accept-replay', opponentId)
+
 // game emitters
 let emitMove = data => socket.emit('check-move', data)
 let emitSwitchTurn = turn => socket.emit('switch-turn', turn)
@@ -42,6 +44,7 @@ export {
     subscribeToAccpt,
     subscribeToGameStart,
     subscribeToDeclinedGame,
+    subscribeToRestartGame,
     // game subs
     subscribeToMove,
     subscribeToSwitchTurn,
@@ -54,6 +57,7 @@ export {
     emitAccept,
     emitJoinRoom,
     emitDeclineReplay,
+    emitAcceptReplay,
     // game emits 
     emitMove,
     emitSwitchTurn,
