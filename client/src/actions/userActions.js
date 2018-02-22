@@ -13,7 +13,9 @@ export const saveActiveUsers = users => ({
     payload: users
 })
 
-export const userLogout = id => ({
+export const removeUser = id => ({
     type: 'REMOVE_ACTIVE_USER',
     payload: id
 })
+
+export const logout = () => ({ type: "LOG_OUT" })

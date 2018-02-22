@@ -10,7 +10,8 @@ import {
     saveActiveUsers, 
     addActiveUser,
     saveUsername, 
-    userLogout,
+    removeUser,
+    logout
 } from '../../actions/userActions'
 import { saveMessage } from '../../actions/messageActions'
 import { setPlayOptions } from '../../actions/playActions'
@@ -87,7 +88,7 @@ class Dashboard extends Component {
         })
 
         subscribeToUserLogOut((err, id) => {
-            this.props.userLogout(id)
+            this.props.removeUser(id)
         })
 
         subscribeToAllUsers((err, users) => {
@@ -231,6 +232,12 @@ class Dashboard extends Component {
             this.setState({ progressCompleted: progressCompleted + 4 })
     }
 
+    logout = () =>  {
+        window.localStorage.removeItem('username')
+        this.props.logout()
+        window.location.reload()
+    }
+
     render() {
         let { classes } = this.props
 
@@ -245,7 +252,7 @@ class Dashboard extends Component {
                                 </Col>
                                 <Col xs={10}>
                                     <div className={classes.logout}>
-                                        <Button className={classes.button} aria-label="Delete">
+                                        <Button className={classes.button} onClick={this.logout} aria-label="Delete">
                                             Log out
                                             <PowerSettingsNew className={classes.power} />
                                         </Button>
@@ -300,10 +307,11 @@ const mstp = ({ username, activeUsers }) => ({
 const mdtp = dispatch => ({
     saveActiveUsers: users => dispatch(saveActiveUsers(users)),
     addActiveUser: user => dispatch(addActiveUser(user)),
-    userLogout: id => dispatch(userLogout(id)),
+    removeUser: id => dispatch(removeUser(id)),
     saveMessage: message => dispatch(saveMessage(message)),
     setPlayOptions: side => dispatch(setPlayOptions(side)),
-    saveUsername: username => dispatch(saveUsername(username))
+    saveUsername: username => dispatch(saveUsername(username)),
+    logout: () => dispatch(logout())
 })
 
 Dashboard = withStyles(styles)(Dashboard)
