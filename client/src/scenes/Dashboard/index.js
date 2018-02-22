@@ -3,6 +3,8 @@ import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { withRouter } from 'react-router-dom'
+import PowerSettingsNew from 'material-ui-icons/PowerSettingsNew'
+import Button from 'material-ui/Button'
 
 import { 
     saveActiveUsers, 
@@ -12,7 +14,7 @@ import {
 } from '../../actions/userActions'
 import { saveMessage } from '../../actions/messageActions'
 import { setPlayOptions } from '../../actions/playActions'
- 
+
 import { 
     subscribeToNewUser, 
     subscribeToUserLogOut,
@@ -40,6 +42,29 @@ const styles = {
     dashboard: {
         backgroundColor: 'rgba(0, 0, 0, 0.25)',
         height: '100vh'
+    },
+    nav: {
+        height: '70px',
+        width: '100%',
+        backgroundColor: '#ffffff',
+        color: '#2196F3',
+        display: 'flex',
+        alignItems: "center",
+        padding: "0 20px",
+        textAlign: "left"
+    },
+    logout: {
+        textAlign: "right"
+    },
+    button: {
+        color: '#2196F3',
+        fontWeight: "bold"
+    },
+    power: {
+        marginLeft: '5px'
+    },
+    paddings: {
+        "padding": "0 16px"
     }
 }
 
@@ -212,6 +237,25 @@ class Dashboard extends Component {
         return (
             <div className={classes.dashboard}>
                 <Grid>
+                    <Col xs={12} className={classes.paddings}>
+                        <Row center="xs">
+                            <nav className={classes.nav}>
+                                <Col xs={2}>
+                                    <h3>Checkers</h3>
+                                </Col>
+                                <Col xs={10}>
+                                    <div className={classes.logout}>
+                                        <Button className={classes.button} aria-label="Delete">
+                                            Log out
+                                            <PowerSettingsNew className={classes.power} />
+                                        </Button>
+                                    </div>
+                                </Col>
+                            </nav>
+                        </Row>
+                    </Col>
+                </Grid>
+                <Grid>
                     <Col xs={12}>
                         <Row center="xs" >
                             <Col xs={3}>
@@ -220,7 +264,7 @@ class Dashboard extends Component {
                                     users={this.props.activeUsers} 
                                 />
                             </Col>
-                            <Col xs={8}>
+                            <Col xs={9}>
                                 <Chat />
                             </Col>
                         </Row>

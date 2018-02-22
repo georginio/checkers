@@ -13,7 +13,7 @@ const styles = {
         backgroundColor: '#ffffff',
         maxHeight: '90vh',
         overflow: 'hidden',
-        margin: '30px 0'
+        margin: '10px 0'
     },
     list: {
         maxHeight: '80vh',
