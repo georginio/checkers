@@ -1,10 +1,18 @@
 import React from 'react';
-
-import './index.css';
+import { withStyles } from 'material-ui/styles'
 
 import Check from '../Check/index';
 
-const Square = ({ turn, active, row, column, onCheckClick, onSquareClick, suggested, king }) => {
+const styles = {
+    square: {
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'brown',
+        position: 'relative'
+    }
+}
+
+const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClick, suggested, king, side }) => {
     let check = null;
     let checkColor = null;
 
@@ -26,13 +34,14 @@ const Square = ({ turn, active, row, column, onCheckClick, onSquareClick, sugges
                 color={checkColor} 
                 active={active} 
                 king={king}
+                side={side}
                 onClick={(e) => onCheckClick(e, row, column) } 
             /> 
         );
 
 return (
         <div 
-            className="square"
+            className={classes.square}
             style={styles}
             onClick={ (e) => onSquareClick(e, row, column, turn) }
         >
@@ -41,4 +50,4 @@ return (
     )
 };
 
-export default Square;
+export default withStyles(styles)(Square)

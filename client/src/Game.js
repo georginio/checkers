@@ -1,144 +1,184 @@
 import React, { Component } from 'react';
-// import ReactDOM from 'react-dom';
+import { connect } from 'react-redux'
+import { withStyles } from 'material-ui/styles'
+import { withRouter } from 'react-router-dom'
+
+import {
+    subscribeToMove,
+    subscribeToSwitchTurn,
+    subscribeToEndGame,
+    subscribeToDeclinedGame,
+    subscribeToRestartGame,
+    subscribeToDisconnect,
+    emitMove,
+    emitSwitchTurn,
+    emitEndGame,
+    emitDeclineReplay,
+    emitAcceptReplay
+} from './socket'
+
+import { switchTurn, resetOptions } from './actions/playActions'
+
+import fastEndState from './data/fastEndState'
+// import defaultState from './data/defaultState'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
-
-import './Game.css';
+import NotificationDialog from './components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
 
+const styles = {
+    game: {
+        display: 'grid',
+        gridTemplateColumns: '30% 70%',
+        height: '100%',
+        width: '100%',
+        position: 'relative'
+    }
+}
+
+const subMap = arr => arr.map(sub => sub.map(subsub => subsub))
+
 class Game extends Component {
 
     constructor(props) {
-        super(props);
+        super(props)
 
         this.state = {
-            squares: [
-                [
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 135, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 315, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 495, y: 45 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 675, y: 45 }
-                ], 
-                [
-                    { player: PLAYER_1, king: false, active: false, x: 45, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 225, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 405, y: 135 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 585, y: 135 }, 
-                    null
-                ], 
-                [
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 135, y: 225 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 315, y: 225 }, 
-                    null,
-                    { player: PLAYER_1, king: false, active: false, x: 495, y: 225 }, 
-                    null, 
-                    { player: PLAYER_1, king: false, active: false, x: 675, y: 225 }
-                ], 
-                [
-                    { x: 45, y: 315 }, 
-                    null,
-                    { x: 225, y: 315 }, 
-                    null,
-                    { x: 405, y: 315 }, 
-                    null, 
-                    { x: 585, y: 315 }, 
-                    null,
-                ], 
-                [
-                    null, 
-                    { x: 135, y: 405 }, 
-                    null,
-                    { x: 315, y: 405 }, 
-                    null, 
-                    { x: 495, y: 405 }, 
-                    null,
-                    { x: 675, y: 405 }
-                ], 
-                [
-                    { player: PLAYER_2, king: false, active: false, x: 45, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 225, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 405, y: 495 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 585, y: 495 }, 
-                    null
-                ],  
-                [
-                    null,  
-                    { player: PLAYER_2, king: false, active: false, x: 135, y: 585 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 315, y: 585 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 495, y: 585 }, 
-                    null,  
-                    { player: PLAYER_2, king: false, active: false, x: 675, y: 585 }
-                ],
-                [
-                    { player: PLAYER_2, king: false, active: false, x: 45, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 225, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 405, y: 675 }, 
-                    null, 
-                    { player: PLAYER_2, king: false, active: false, x: 585, y: 675 }, 
-                    null
-                ]  
-            ],
+            squares: subMap(fastEndState),
             turn: PLAYER_1,
-            suggestedSquares: []
-        };
+            suggestedSquares: [],
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0,
+            alertContent: ''
+        }
         
-        this.activeColumn = null;
-        this.activeRow = null;
+        this.activeColumn = null
+        this.activeRow = null
 
-        this.mustMove = false;
-        this.bannedDirection = null;
+        this.mustMove = false
+        this.bannedDirection = null
 
-        this.killTarget = [];
-        this.killBy = null;
+        this.killTarget = []
         this.checkQuantity = {
             white: 12,
             black: 12
-        };
-        this.handleCheckClick = this.handleCheckClick.bind(this);
-        this.handleSquareClick = this.handleSquareClick.bind(this);
-        this.isSuggested = this.isSuggested.bind(this);
+        }
 
+        this.handleCheckClick = this.handleCheckClick.bind(this)
+        this.handleSquareClick = this.handleSquareClick.bind(this)
+        this.isSuggested = this.isSuggested.bind(this)
+
+        subscribeToMove((err, move) => this._opponentMove(move))
+    
+        subscribeToSwitchTurn((err, turn) => {
+            this._resetKillTarget()
+            this.props.switchTurn(turn)
+        })
+
+        subscribeToEndGame((err, winner) => this._handleEndGame(winner))
+
+        subscribeToDeclinedGame(err => this._endGame())
+
+        subscribeToRestartGame(err => {
+            this.handleClose()
+            this.initProps()
+
+            let squares = this._initBoard(subMap(fastEndState))
+            this.setState({ squares }, () => console.log(this.state.squares))
+        })
+
+        subscribeToDisconnect(err => {
+            this.setState({ 
+                waitNotifOpen: true,
+                notificationTitle: "Opponent has been disconnected!"
+            })
+    
+            this.time = setInterval(this._progress, 500)
+        })
+        
     }
 
     componentWillMount() {
-        this._startGame();
+        let squares = this._initBoard()
+        this.setState({ squares })
     }
 
-    componentDidUpdate() {
-        if (this.checkQuantity.black === 0) 
-            alert(PLAYER_1 + ' won game!');
-        else if (this.checkQuantity.white === 0)
-            alert(PLAYER_2 + 'won game!');
+    initProps () {
+        this.activeColumn = null
+        this.activeRow = null
+
+        this.mustMove = false
+        this.bannedDirection = null
+
+        this.killTarget = []
+        this.checkQuantity = {
+            white: 12,
+            black: 12
+        }
+    }
+
+    acceptReplay = () => {
+        this.handleClose()
+        this.setState({ 
+            suggestedSquares: [],
+            turn: PLAYER_1 
+        })
+        
+        emitAcceptReplay(this.props.play.opponent.id)
+    }
+    // looser declined to replay
+    declineReplay = () => {
+        emitDeclineReplay(this.props.play.opponent.id)
+        this._endGame()
+    }
+
+    handleClose() {
+        this.setState({ 
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0 
+        })
+
+        clearInterval(this.time)
+    }
+    
+    handleOpen(title, message) {
+        this.setState({ 
+            playNotifOpen: true,
+            notificationTitle: title,
+            notifContext: message
+        })
+
+        this.time = setInterval(this._progress, 500)
+    }
+
+    handleWaitOpen(title) {
+        this.setState({ 
+            waitNotifOpen: true,
+            notificationTitle: title
+        })
+
+        this.time = setInterval(this._progress, 500)
     }
 
     handleCheckClick(e, row, column) {
         e.stopPropagation();
+        let { play } = this.props
 
-        let squares = this.state.squares.slice();
-        let check = squares[row][column];
+        if (play.turn === play.side && this.state.squares[row][column].player === play.turn) {
 
-        if (this.killTarget.length > 0) return;
-
-        if (this.state.turn === check.turn) {
+            let squares = this.state.squares.slice();
+            let check = squares[row][column];
+            
+            if (this.killTarget.length > 0) return;
+    
             this._resetKillTarget();
             this._deactivateAllchecks(squares);
 
@@ -148,7 +188,9 @@ class Game extends Component {
 
             this.activeRow = row;
             this.activeColumn = column;
-            this._suggestSquares(row, column, squares[row][column]);
+
+            let suggestedSquares = this._suggestSquares(row, column, squares[row][column]);
+            this.setState({ suggestedSquares })
         }
     }
 
@@ -156,8 +198,8 @@ class Game extends Component {
         if (
             this.mustMove && 
             this.isSuggested(row, column) && 
-            this.state.squares[this.activeRow][this.activeColumn].player === this.state.turn
-        ) this._move(row, column);
+            this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn
+        ) this._move(row, column)
   
     }
 
@@ -171,7 +213,30 @@ class Game extends Component {
         this.killTarget.push(target);
     }
 
-    _checkForKill(squares, suggestedSquares, row, column) {
+    _checkForfinishGame = (squares, turn) => {
+        
+        if (this.checkQuantity.black === 0) 
+            return PLAYER_1
+        else if (this.checkQuantity.white === 0)
+            return PLAYER_2
+
+        let { play } = this.props
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (squares[i][j].player && squares[i][j].player !== play.side && turn !== play.side) {
+                    let suggested = this._suggestSquares(i, j, squares[i][j], squares, true)
+                    if (suggested.length > 0)
+                        return false
+                }
+            }
+        }
+
+        return play.side
+    }
+
+    _checkForKill(squares, row, column) {
+
+        let suggestedSquares = []
 
         if (squares[row][column].king) {
             // 4 criteria object
@@ -203,7 +268,7 @@ class Game extends Component {
 
                     if ( squares[leftTop.currentRow][leftTop.currentColumn] && 
                         squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.state.turn && 
+                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
                         squares[leftTop.currentRow - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
                         !squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player && !suggestedKill ) {
@@ -236,7 +301,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.state.turn && 
+                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
                         squares[leftTop.currentRow - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
                         squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player)
@@ -254,7 +319,7 @@ class Game extends Component {
 
                     if ( squares[rightTop.currentRow][rightTop.currentColumn] && 
                         squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.state.turn && 
+                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
                         squares[rightTop.currentRow - 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
                         !squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player && 
@@ -288,7 +353,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.state.turn && 
+                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
                         squares[rightTop.currentRow - 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
                         squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player)
@@ -305,7 +370,7 @@ class Game extends Component {
 
                     if (squares[leftBottom.currentRow][leftBottom.currentColumn] && 
                         squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.state.turn && 
+                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
                         squares[leftBottom.currentRow + 1] &&
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
                         !squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player && !suggestedKill ) {
@@ -338,7 +403,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.state.turn && 
+                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
                         squares[leftBottom.currentRow + 1] &&
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
                         squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player)
@@ -356,7 +421,7 @@ class Game extends Component {
                     
                     if ( squares[rightBottom.currentRow][rightBottom.currentColumn] && 
                         squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.state.turn && 
+                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
                         squares[rightBottom.currentRow + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
                         !squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player && 
@@ -390,7 +455,7 @@ class Game extends Component {
 
                     else if (suggestedKill || (
                         squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.state.turn && 
+                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
                         squares[rightBottom.currentRow + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
                         squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player)
@@ -400,59 +465,59 @@ class Game extends Component {
                     rightBottom.currentColumn = rightBottom.currentColumn + 1;
                 }
             }
-        } else if (!squares[row][column].king && this.state.turn === PLAYER_1) {
+        } else if (!squares[row][column].king && this.props.play.turn === PLAYER_1) {
 
-            if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.state.turn && !squares[row + 2][column + 2].player) {
+            if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn && !squares[row + 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row + 2][column + 2]);
             }
-            if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.state.turn && !squares[row + 2][column - 2].player) {
+            if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn && !squares[row + 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row + 2][column - 2]);
             }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.state.turn && !squares[row - 2][column + 2].player) {
+            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row - 2][column + 2]);
             }
-            if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.state.turn && !squares[row - 2][column - 2].player) {
+            if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn && !squares[row - 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row - 2][column - 2]);
             }
-        } else if (!squares[row][column].king && this.state.turn === PLAYER_2) {
-            if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.state.turn &&  !squares[row - 2][column - 2].player) {
+        } else if (!squares[row][column].king && this.props.play.turn === PLAYER_2) {
+            if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn &&  !squares[row - 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row - 2][column - 2]);
             }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.state.turn && !squares[row - 2][column + 2].player) {
+            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row - 1, 
                     column: column + 1 
                 });
                 suggestedSquares.push(squares[row - 2][column + 2]);
             }
-            if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.state.turn &&  !squares[row + 2][column - 2].player) {
+            if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn &&  !squares[row + 2][column - 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column - 1 
                 });
                 suggestedSquares.push(squares[row + 2][column - 2]);
             }
-            if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.state.turn &&  !squares[row + 2][column + 2].player) {
+            if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn &&  !squares[row + 2][column + 2].player) {
                 this._addKillTarget({ 
                     row: row + 1, 
                     column: column + 1 
@@ -460,6 +525,8 @@ class Game extends Component {
                 suggestedSquares.push(squares[row + 2][column + 2]);
             }
         }
+
+        return suggestedSquares
     }
 
     _checkForKing(checker) {
@@ -486,6 +553,30 @@ class Game extends Component {
         } 
     }
 
+    _endGame = () => {
+        clearInterval(this.time)
+        this.props.resetOptions()
+        
+        this.setState({
+            playNotifOpen: false,
+            waitNotifOpen: false,
+            alertOpen: false,
+            progressCompleted: 0, 
+            turn: PLAYER_1,
+            suggestedSquares: [],
+        }, () => {
+            window.location = "/"
+        })
+
+    }
+
+    _handleEndGame = (winner) => {
+        if (this.props.play.side !== winner)
+            this.handleOpen("You lost!", "Do you want to replay?")
+        else if (this.props.play.side === winner) 
+            this.handleWaitOpen("You win, please wait for second!")
+    }
+
     _killProperCheck (startRow, startColumn, endRow, endColumn) {
         let targetIndex = this.killTarget.findIndex((target, index) => {
             return (startRow < target.row && endRow > target.row && startColumn < target.column && endColumn > target.column) ||
@@ -501,14 +592,20 @@ class Game extends Component {
         let squares = this.state.squares.slice();
         let activeChecker = squares[this.activeRow][this.activeColumn];
         let suggestedSquares = [];
-
-        // replace checker location to another square
+        let emitObj = {
+            from: {
+                row: this.activeRow,
+                column: this.activeColumn  
+            }
+        }
+        // change checker location with another square
         squares[row][column] = activeChecker;
         squares[this.activeRow][this.activeColumn] = { row: activeChecker.row, column: activeChecker.column };
         
         activeChecker.row = row;
         activeChecker.column = column;
 
+        emitObj.activeChecker = activeChecker
         // if move is kill operation check if there is another kill probability
         if (this.killTarget.length > 0) {
 
@@ -516,7 +613,8 @@ class Game extends Component {
             squares[this.killTarget[targetIndex].row][this.killTarget[targetIndex].column].player === PLAYER_1 ? this.checkQuantity.white -= 1 : this.checkQuantity.black -= 1;
             // remove killed check from board
             squares[this.killTarget[targetIndex].row][this.killTarget[targetIndex].column] = this.killTarget[targetIndex];
-            
+            emitObj.killTarget = this.killTarget[targetIndex]
+
             if (this.activeRow < row && this.activeColumn < column)
                 this.bannedDirection = 'TOP_LEFT';
             else if (this.activeRow < row && this.activeColumn > column)
@@ -527,7 +625,8 @@ class Game extends Component {
                 this.bannedDirection = 'BOTTOM_RIGHT';
             
             this._resetKillTarget();
-            this._checkForKill(squares, suggestedSquares, row, column);
+            suggestedSquares = this._checkForKill(squares, row, column);
+
         }
 
         // change active row and column due to moved checher
@@ -540,10 +639,21 @@ class Game extends Component {
         // if there is not additional kill deactivate active squares
         // switch turn
         if (suggestedSquares.length === 0) {
-            this._switchTurn();
+            let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
+            let winner = this._checkForfinishGame(squares, turn)
+
+            if (winner) {
+                emitEndGame(winner)
+                this._handleEndGame(winner)
+            }
+
+            this._switchTurn(squares);
             this._deactivateAllchecks(squares);
             this.bannedDirection = null;
         }
+        
+        // emit move
+        emitMove(emitObj)
 
         this.setState({ 
             squares,
@@ -552,12 +662,34 @@ class Game extends Component {
         
     }
 
+    _opponentMove = ({ from, activeChecker, killTarget }) => {
+        let squares = this.state.squares.slice()
+
+        squares[from.row][from.column] = from
+        squares[activeChecker.row][activeChecker.column] = activeChecker
+
+        if (killTarget) 
+            squares[killTarget.row][killTarget.column] = killTarget
+        
+        this.setState(squares)
+    }
+
+    _progress = () => {
+        let { progressCompleted } = this.state
+
+        if (progressCompleted === 100) 
+            window.location = "/"
+        else 
+            this.setState({ progressCompleted: progressCompleted + 4 })
+    }
+
     _resetKillTarget() {
         this.killTarget = [];
     }
 
-    _startGame() {
-        let squares = this.state.squares.slice();
+    _initBoard(initSquares) {
+
+        let squares = initSquares || this.state.squares.slice() 
 
         for (let i = 0; i < squares.length; i++) {
             for (let j = 0; j < squares.length; j++) {
@@ -577,16 +709,20 @@ class Game extends Component {
             }
         } 
 
-        this.setState({ squares });
+        return squares
     }
 
-    _suggestSquares(row, column, activeChecker) {
-        let { squares } = this.state;
-        let suggestedSquares = [];
+    _suggestSquares(row, column, activeChecker, squaresArray, ignoreKillTarget) {
+        let suggestedSquares = []
+        let squares = squaresArray
+        
+        if (!squares)
+            squares = this.state.squares
 
         if (activeChecker.player && activeChecker.player === PLAYER_1 && !activeChecker.king) {
             
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
 
             if (suggestedSquares.length === 0) {
                 if (row < 7 && column > 0 && column <= 7 && !squares[row + 1][column - 1].player)
@@ -599,7 +735,8 @@ class Game extends Component {
        
         } else if (activeChecker.player && activeChecker.player === PLAYER_2 && !activeChecker.king) {
             
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
             
             if (suggestedSquares.length === 0) {
                 if (row <= 7 && row > 0 && column > 0 && !squares[row - 1][column - 1].player)
@@ -610,7 +747,8 @@ class Game extends Component {
 
         } else if (activeChecker.player && activeChecker.king) {
 
-            this._checkForKill(squares, suggestedSquares, row, column);
+            if (!ignoreKillTarget)
+                suggestedSquares = this._checkForKill(squares, row, column)
 
             let leftTop = {
                 currentRow: row - 1, 
@@ -698,26 +836,43 @@ class Game extends Component {
 
         }
 
-        this.setState({ suggestedSquares })
+        return suggestedSquares
 
     }
     
-    _switchTurn () {
-        let turn = (this.state.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1;
-        this.setState({ turn }); 
+    _switchTurn (squares) {
+        let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
+        emitSwitchTurn(turn)
+        this.props.switchTurn(turn)
     }
 
     render () {
+        let { classes } = this.props
+
         return (
-            <div className="game">
-                <Description turn={this.state.turn} />
+            <div className={classes.game}>
+                <Description turn={this.props.play.turn} />
                 <Board 
                     squares={this.state.squares} 
                     suggestedSquares={this.state.suggestedSquares}
                     isSuggested={this.isSuggested}
                     onCheckClick={this.handleCheckClick}
                     onSquareClick={this.handleSquareClick}
-                    offset={this.state.offset}
+                    side={this.props.play.side}
+                />
+                <NotificationDialog      
+                    open={this.state.playNotifOpen}
+                    handleClose={this.handleClose} 
+                    context={this.state.notifContext}
+                    title={this.state.notificationTitle}
+                    progress={this.state.progressCompleted}
+                    accept={this.acceptReplay}
+                    decline={this.declineReplay}
+                />
+                <WaitNotificationDialog 
+                    open={this.state.waitNotifOpen}
+                    title={this.state.notificationTitle}
+                    progress={this.state.progressCompleted}
                 />
             </div>
         );
@@ -725,6 +880,13 @@ class Game extends Component {
 
 }
 
+const mstp = ({ play }) => ({
+    play
+})
 
+const mdtp = dispatch => ({
+    switchTurn: turn => dispatch(switchTurn(turn)),
+    resetOptions: () => dispatch(resetOptions())
+})
 
-export default Game;
+export default withRouter(connect(mstp, mdtp)(withStyles(styles)(Game)))

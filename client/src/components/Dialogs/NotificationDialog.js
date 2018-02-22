@@ -19,9 +19,10 @@ const NotificationDialog = ({
         classes, 
         open, 
         handleClose, 
-        acceptInvitation, 
-        declineInvitation, 
+        accept, 
+        decline, 
         context, 
+        title = "Play Offer",
         progress 
     }) => 
         <Dialog
@@ -31,7 +32,7 @@ const NotificationDialog = ({
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">Play Offer</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
             <DialogContent className={classes.root}>
                 <DialogContentText id="alert-dialog-description">
                     {context}
@@ -42,14 +43,14 @@ const NotificationDialog = ({
                 <Button 
                     variant="raised" 
                     color="secondary"
-                    onClick={declineInvitation}
+                    onClick={decline}
                 >
                     Cancel
                 </Button>
                 <Button 
                     variant="raised" 
                     color="primary" 
-                    onClick={acceptInvitation} 
+                    onClick={accept} 
                     autoFocus
                 >
                     Accept

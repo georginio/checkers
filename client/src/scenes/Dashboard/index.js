@@ -6,10 +6,12 @@ import { withRouter } from 'react-router-dom'
 
 import { 
     saveActiveUsers, 
-    addActiveUser, 
-    userLogout 
+    addActiveUser,
+    saveUsername, 
+    userLogout,
 } from '../../actions/userActions'
 import { saveMessage } from '../../actions/messageActions'
+import { setPlayOptions } from '../../actions/playActions'
  
 import { 
     subscribeToNewUser, 
@@ -23,15 +25,16 @@ import {
     emitInvitation,
     emitDeclineInvitation,
     emitAccept,
-    emitJoinRoom
+    emitJoinRoom,
+    emitNewUser
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
 import Chat from './components/Chat/Chat'
-import FormHOC from './components/FormHOC/FormHOC'
-import NotificationDialog from './components/Dialogs/NotificationDialog'
-import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
-import AlertDialog from './components/Dialogs/AlertDialog'
+import FormHOC from './components/FormHOC/FormHOC' 
+import NotificationDialog from '../../components/Dialogs/NotificationDialog'
+import WaitNotificationDialog from '../../components/Dialogs/WaitNotificationDialog'
+import AlertDialog from '../../components/Dialogs/AlertDialog'
 
 const styles = {
     dashboard: {
@@ -54,7 +57,8 @@ class Dashboard extends Component {
         }
 
         subscribeToNewUser((err, user) => {
-            this.props.addActiveUser(user)
+            if (this.props && this.props.activeUsers && user)
+                this.props.addActiveUser(user)
         })
 
         subscribeToUserLogOut((err, id) => {
@@ -75,6 +79,12 @@ class Dashboard extends Component {
                 username: invitation.from,
                 id: invitation.deliverer
             }
+            this.props.setPlayOptions({
+                opponent: {
+                    username: invitation.from,
+                    id: invitation.deliverer
+                }
+            })
         })
 
         subscribeToDeclinedInvitation((err, { username }) => {
@@ -85,18 +95,46 @@ class Dashboard extends Component {
             })
         })
 
-        subscribeToAccpt((err, { roomName }) => {
-            emitJoinRoom(roomName)
+        subscribeToAccpt((err, { roomName, from, deliverer }) => {
+
+            this.props.setPlayOptions({
+                opponent: {
+                    username: from,
+                    id: deliverer
+                }
+            })
+            emitJoinRoom({ roomName, username: this.props.username })
         })
 
-        subscribeToGameStart(err => {
-            this.props.history.push('/game')
+        subscribeToGameStart((err, { roomName, secondPlayer }) => {
+            let options = { roomName }
+
+            if (secondPlayer === this.props.username) {
+                options.side = 'Player 2'
+                options.turn = 'Player 1'
+            } else {
+                options.side = 'Player 1'
+                options.turn = 'Player 1'
+            }
+
+            this.props.setPlayOptions(options)
+            this.props.history.push(`/game/${roomName}`)
+
         })
 
         this.emitInvitation = this.emitInvitation.bind(this)
         this.handleClose = this.handleClose.bind(this)
         this.handleOpen = this.handleOpen.bind(this)
         this.handleWaitOpen = this.handleWaitOpen.bind(this)
+    }
+
+    componentDidMount() {
+        let username = this.props.username || window.localStorage.getItem('username')
+
+        if (username) {
+            emitNewUser(username)
+            this.props.saveUsername(username)
+        }
     }
 
     componentWillUnmount() {
@@ -135,7 +173,6 @@ class Dashboard extends Component {
     emitInvitation(id, username) {
         emitInvitation({ 
             id, 
-            username,
             from: this.props.username  
         })
 
@@ -153,7 +190,7 @@ class Dashboard extends Component {
 
     acceptInvitation = () => {
         emitAccept({
-            username: this.props.username,
+            from: this.props.username,
             deliverer: this.deliverer
         })
         
@@ -192,8 +229,8 @@ class Dashboard extends Component {
                             handleClose={this.handleClose} 
                             context={this.state.notifContext}
                             progress={this.state.progressCompleted}
-                            acceptInvitation={this.acceptInvitation}
-                            declineInvitation={this.declineInvitation}
+                            accept={this.acceptInvitation}
+                            decline={this.declineInvitation}
                         /> 
                         <WaitNotificationDialog 
                             progress={this.state.progressCompleted}
@@ -220,9 +257,11 @@ const mdtp = dispatch => ({
     saveActiveUsers: users => dispatch(saveActiveUsers(users)),
     addActiveUser: user => dispatch(addActiveUser(user)),
     userLogout: id => dispatch(userLogout(id)),
-    saveMessage: message => dispatch(saveMessage(message))
+    saveMessage: message => dispatch(saveMessage(message)),
+    setPlayOptions: side => dispatch(setPlayOptions(side)),
+    saveUsername: username => dispatch(saveUsername(username))
 })
 
 Dashboard = withStyles(styles)(Dashboard)
 
-export default withRouter(connect(mstp, mdtp)(FormHOC(Dashboard)))
+export default connect(mstp, mdtp)(withRouter(FormHOC(Dashboard)))
