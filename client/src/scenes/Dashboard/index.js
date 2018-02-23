@@ -13,7 +13,7 @@ import {
     removeUser,
     logout
 } from '../../actions/userActions'
-import { saveMessage } from '../../actions/messageActions'
+import { saveMessage, cleanHistory } from '../../actions/messageActions'
 import { setPlayOptions } from '../../actions/playActions'
 
 import { 
@@ -144,6 +144,7 @@ class Dashboard extends Component {
             }
 
             this.props.setPlayOptions(options)
+            this.props.cleanMessageHistory()
             this.props.history.push(`/game/${roomName}`)
 
         })
@@ -311,7 +312,8 @@ const mdtp = dispatch => ({
     saveMessage: message => dispatch(saveMessage(message)),
     setPlayOptions: side => dispatch(setPlayOptions(side)),
     saveUsername: username => dispatch(saveUsername(username)),
-    logout: () => dispatch(logout())
+    logout: () => dispatch(logout()),
+    cleanMessageHistory: () => dispatch(cleanHistory())
 })
 
 Dashboard = withStyles(styles)(Dashboard)
