@@ -19,9 +19,17 @@ let subscribeToDisconnect = cb => socket.on('disconnected-user', () => cb(null))
 let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
 let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
 let subscribeToEndGame = cb => socket.on('end-game', winner => cb(null, winner))
+let subscribeToPrivateMessage = cb => socket.on('private-message', message => cb(null, message))
 
 // emitters
-let emitMessage = message => socket.emit('message', message)
+let emitMessage = (message, privateMessage) => { 
+    let event = 'message'
+
+    if (privateMessage)
+        event = 'private-message' 
+        
+    socket.emit(event, message) 
+}
 let emitNewUser = username => socket.emit('new-user', username)
 let emitInvitation = invitation => socket.emit('play-invitation', invitation)
 let emitDeclineInvitation = decline => socket.emit('decline-invitation', decline)
@@ -29,7 +37,7 @@ let emitAccept = accept => socket.emit('accept-invitation', accept)
 let emitJoinRoom = room => socket.emit('join-room', room)
 let emitDeclineReplay = opponentId => socket.emit('decline-replay', opponentId) 
 let emitAcceptReplay = opponentId => socket.emit('accept-replay', opponentId)
-
+let emitLeftoRoom = () => socket.emit('left-room');
 // game emitters
 let emitMove = data => socket.emit('check-move', data)
 let emitSwitchTurn = turn => socket.emit('switch-turn', turn)
@@ -52,6 +60,7 @@ export {
     subscribeToMove,
     subscribeToSwitchTurn,
     subscribeToEndGame,
+    subscribeToPrivateMessage,
     // emits
     emitMessage,
     emitNewUser,
@@ -61,6 +70,7 @@ export {
     emitJoinRoom,
     emitDeclineReplay,
     emitAcceptReplay,
+    emitLeftoRoom,
     // game emits 
     emitMove,
     emitSwitchTurn,

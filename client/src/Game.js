@@ -10,14 +10,17 @@ import {
     subscribeToDeclinedGame,
     subscribeToRestartGame,
     subscribeToDisconnect,
+    subscribeToPrivateMessage,
     emitMove,
     emitSwitchTurn,
     emitEndGame,
     emitDeclineReplay,
-    emitAcceptReplay
+    emitAcceptReplay,
+    emitLeftoRoom
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
+import { saveMessage } from './actions/messageActions'
 
 import fastEndState from './data/fastEndState'
 // import defaultState from './data/defaultState'
@@ -83,7 +86,10 @@ class Game extends Component {
 
         subscribeToEndGame((err, winner) => this._handleEndGame(winner))
 
-        subscribeToDeclinedGame(err => this._endGame())
+        subscribeToDeclinedGame(err => { 
+            this._endGame()
+            emitLeftoRoom() 
+        })
 
         subscribeToRestartGame(err => {
             this.handleClose()
@@ -100,6 +106,11 @@ class Game extends Component {
             })
     
             this.time = setInterval(this._progress, 500)
+            emitLeftoRoom()
+        })
+
+        subscribeToPrivateMessage((err, message) => {
+            this.props.saveMessage(message)
         })
         
     }
@@ -886,7 +897,8 @@ const mstp = ({ play }) => ({
 
 const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn)),
-    resetOptions: () => dispatch(resetOptions())
+    resetOptions: () => dispatch(resetOptions()),
+    saveMessage: message => dispatch(saveMessage(message)),
 })
 
 export default withRouter(connect(mstp, mdtp)(withStyles(styles)(Game)))

@@ -1,4 +1,6 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
+
+import Chat from '../../components/Chat/Chat'
 
 class Board extends Component {
 
@@ -6,6 +8,7 @@ class Board extends Component {
         return (
             <div>
                 turn: {this.props.turn}
+                <Chat private={true} />
             </div>
         );
     }

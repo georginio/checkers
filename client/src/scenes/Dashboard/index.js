@@ -33,7 +33,7 @@ import {
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
-import Chat from './components/Chat/Chat'
+import Chat from '../../components/Chat/Chat'
 import FormHOC from './components/FormHOC/FormHOC' 
 import NotificationDialog from '../../components/Dialogs/NotificationDialog'
 import WaitNotificationDialog from '../../components/Dialogs/WaitNotificationDialog'

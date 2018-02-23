@@ -4,12 +4,16 @@ module.exports = (io, users, rooms, redisClient) => {
 
     io.on('connection', (socket) => {
 
+        socket.join('main');
+
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);
             let gameIndex = games.findIndex(game => game.player1.id === socket.id || game.player2.id === socket.id);
 
             if (gameIndex > -1) {
-                io.to(games[gameIndex].roomname).emit('disconnected-user');
+                let roomname = games[gameIndex].roomname;
+                io.to(roomname).emit('disconnected-user');
+                socket.leave(roomname);
             }
 
             if (index > -1) {
@@ -19,13 +23,19 @@ module.exports = (io, users, rooms, redisClient) => {
         });
 
         socket.on('message', (message) => {
-            socket.broadcast.emit('message', message);
+            socket.to('main').broadcast.emit('message', message)
+        });
+
+        socket.on('private-message', (message) => {
+            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            if (game) 
+                socket.to(game.roomname).broadcast.emit('private-message', message);
         });
 
         socket.on('new-user', (username) => {
             // send all user list to new socket before adding new socket to the list
             io.to(socket.id).emit('all-users', users)
-            
+
             let user = { username, id: socket.id };
             users.push(user);
             socket.broadcast.emit('new-user', user);
@@ -45,6 +55,7 @@ module.exports = (io, users, rooms, redisClient) => {
                 player1: username,
                 player2: from
             };
+            socket.leave('main');
             socket.join(roomName);
             socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
 
@@ -55,9 +66,18 @@ module.exports = (io, users, rooms, redisClient) => {
         socket.on('decline-invitation', (decline) => socket.to(decline.deliverer).emit('decline-invitation', decline));
 
         socket.on('join-room', ({ roomName, username }) => {
+            socket.leave('main');
             socket.join(roomName);
             // strange way to give sides to players
             io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
+        })
+
+        socket.on('left-room', () => {
+            let game = games.find(game => game.player1.id === socket.id || game.player2.id == socket.id);
+            if (game) {
+                socket.leave(game.roomname);
+                socket.join('main');
+            }
         })
 
         // after end game emitters
@@ -69,24 +89,37 @@ module.exports = (io, users, rooms, redisClient) => {
 
         socket.on('decline-replay', (id) => {
             socket.broadcast.emit('declined-replay');
-
             let index = games.findIndex(game => game.player1.id === id || game.player2.id == id);
             
-            if (index > -1)
+            if (index > -1) {
+                let room = games[index].roomname;
+                socket.leave(room);
+                socket.join(room);
                 games.splice(index, 1);
+            }
         });
         
         // listen for game emitters
         socket.on('check-move', (destination) => {
-            socket.broadcast.emit('check-move', destination);
+            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            
+            if (game) 
+                socket.to(game.roomname).broadcast.emit('check-move', destination);
+
         });
 
         socket.on('switch-turn', (turn) => {
-            socket.broadcast.emit('switch-turn', turn);
+            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            
+            if (game) 
+                socket.to(game.roomname).broadcast.emit('switch-turn', turn);
         });
 
         socket.on('end-game', (winner) => {
-            socket.broadcast.emit('end-game', winner);
+            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            
+            if (game)
+                socket.to(game.roomname).broadcast.emit('end-game', winner);
         });
         
        
