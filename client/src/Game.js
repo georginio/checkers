@@ -40,7 +40,9 @@ const styles = {
         gridTemplateColumns: '30% 70%',
         height: '100vh',
         width: '100%',
-        position: 'relative'
+        position: 'relative',
+        padding: '15px',
+        boxSizing: 'border-box',
     }
 }
 
