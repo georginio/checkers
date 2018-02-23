@@ -15,9 +15,9 @@ import { saveMessage } from '../../actions/messageActions'
 
 const styles = {
     root: {
-        height: '90vh',
+        height: '80vh',
         backgroundColor: '#ffffff',
-        margin: '10px 0',
+        margin: '5px 0',
         display: 'flex',
         flexDirection: 'column'
     }

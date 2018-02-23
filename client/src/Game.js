@@ -35,9 +35,10 @@ const PLAYER_2 = 'Player 2';
 
 const styles = {
     game: {
+        backgroundColor: 'rgba(0, 0, 0, 0.25)',
         display: 'grid',
         gridTemplateColumns: '30% 70%',
-        height: '100%',
+        height: '100vh',
         width: '100%',
         position: 'relative'
     }
@@ -53,6 +54,7 @@ class Game extends Component {
         this.state = {
             squares: subMap(fastEndState),
             turn: PLAYER_1,
+            turnBy: '',
             suggestedSquares: [],
             playNotifOpen: false,
             waitNotifOpen: false,
@@ -81,6 +83,7 @@ class Game extends Component {
     
         subscribeToSwitchTurn((err, turn) => {
             this._resetKillTarget()
+            this._defineTurnBy(turn)
             this.props.switchTurn(turn)
         })
 
@@ -116,6 +119,7 @@ class Game extends Component {
     }
 
     componentWillMount() {
+        this._defineTurnBy()
         let squares = this._initBoard()
         this.setState({ squares })
     }
@@ -564,6 +568,14 @@ class Game extends Component {
         } 
     }
 
+    _defineTurnBy = (turn) => {
+        let { play } = this.props
+        turn = turn || play.turn
+
+        let turnBy = play.side === turn ? this.props.username : play.opponent.username
+        this.setState({ turnBy })
+    }
+
     _endGame = () => {
         clearInterval(this.time)
         this.props.resetOptions()
@@ -854,6 +866,7 @@ class Game extends Component {
     _switchTurn (squares) {
         let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
         emitSwitchTurn(turn)
+        this._defineTurnBy(turn)
         this.props.switchTurn(turn)
     }
 
@@ -862,7 +875,7 @@ class Game extends Component {
 
         return (
             <div className={classes.game}>
-                <Description turn={this.props.play.turn} />
+                <Description turn={this.state.turnBy} />
                 <Board 
                     squares={this.state.squares} 
                     suggestedSquares={this.state.suggestedSquares}
@@ -891,8 +904,9 @@ class Game extends Component {
 
 }
 
-const mstp = ({ play }) => ({
-    play
+const mstp = ({ play, username }) => ({
+    play,
+    username
 })
 
 const mdtp = dispatch => ({
