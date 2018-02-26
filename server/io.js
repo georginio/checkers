@@ -34,6 +34,11 @@ module.exports = (io, users, rooms, redisClient) => {
 
         socket.on('new-user', (username) => {
             // send all user list to new socket before adding new socket to the list
+            let index = users.findIndex(user => user.id === socket.id || user.username === username)
+            
+            if (index !== -1) 
+                return;
+            
             io.to(socket.id).emit('all-users', users)
 
             let user = { username, id: socket.id };

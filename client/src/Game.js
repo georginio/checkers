@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles'
 import { withRouter } from 'react-router-dom'
+import { compose } from 'recompose'
 
 import {
     subscribeToMove,
@@ -918,4 +919,11 @@ const mdtp = dispatch => ({
     saveMessage: message => dispatch(saveMessage(message)),
 })
 
-export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))
+// export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))
+
+export default compose(
+    withRouter,
+    connect(mstp, mdtp),
+    withStyles(styles),
+    GameHOC
+)(Game) 
