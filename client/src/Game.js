@@ -29,6 +29,7 @@ import Board from './scenes/Board';
 import Description from './scenes/Description';
 import NotificationDialog from './components/Dialogs/NotificationDialog'
 import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
+import GameHOC from './components/GameHOC'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
@@ -101,7 +102,7 @@ class Game extends Component {
             this.initProps()
 
             let squares = this._initBoard(subMap(fastEndState))
-            this.setState({ squares }, () => console.log(this.state.squares))
+            this.setState({ squares })
         })
 
         subscribeToDisconnect(err => {
@@ -917,4 +918,4 @@ const mdtp = dispatch => ({
     saveMessage: message => dispatch(saveMessage(message)),
 })
 
-export default withRouter(connect(mstp, mdtp)(withStyles(styles)(Game)))
+export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))
