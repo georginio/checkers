@@ -1,6 +1,6 @@
 const Game = require('./src/Game');
 const games = [];
-module.exports = (io, users, rooms, redisClient) => {
+module.exports = (io, users, rooms) => {
 
     io.on('connection', (socket) => {
 
