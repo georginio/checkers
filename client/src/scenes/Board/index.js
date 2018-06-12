@@ -11,7 +11,19 @@ const styles = {
         gridTemplateColumns: 'repeat(8, 12.5%)',
         gridTemplateRows: 'repeat(8, 12.5%)',
         justifySelf: 'center',
-        alignSelf: 'center'
+        alignSelf: 'center',
+        '@media all and (max-width: 1120px)': {
+            height: '640px',
+            width: '640px'
+        },
+        '@media all and (max-width: 970px)': {
+            height: '560px',
+            width: '560px'
+        },
+        '@media all and (max-width: 850px)': {
+            height: '480px',
+            width: '480px'
+        }
     }
 }
 
