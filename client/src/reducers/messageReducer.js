@@ -4,6 +4,11 @@ export default function messageReducer (state = [], action) {
             return [...state, action.payload]
         case 'REMOVE_MESSAGES':
             return []
+        case 'ADD_TO_LAST': {
+            let last = state.pop();
+            last.text = last.text + `\n${action.payload.text}`;
+            return [...state, last];
+        } 
         default:
             return state
     }

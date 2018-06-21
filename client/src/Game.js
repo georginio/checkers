@@ -21,7 +21,7 @@ import {
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
-import { saveMessage } from './actions/messageActions'
+import { saveMessage, addToLastMessage } from './actions/messageActions'
 
 import fastEndState from './data/fastEndState'
 // import defaultState from './data/defaultState'
@@ -117,6 +117,12 @@ class Game extends Component {
         })
 
         subscribeToPrivateMessage((err, message) => {
+            const { messages } = this.props;
+            const lastIndex = messages.length - 1;
+
+            if (lastIndex >= 0 && messages[lastIndex] && messages[lastIndex].username === message.username)
+                return this.props.addToLastMessage(message)
+
             this.props.saveMessage(message)
         })
         
@@ -875,15 +881,17 @@ class Game extends Component {
 
 }
 
-const mstp = ({ play, username }) => ({
+const mstp = ({ play, username, messages }) => ({
     play,
-    username
+    username,
+    messages
 })
 
 const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn)),
     resetOptions: () => dispatch(resetOptions()),
     saveMessage: message => dispatch(saveMessage(message)),
+    addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
 // export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))

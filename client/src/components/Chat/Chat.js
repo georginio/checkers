@@ -11,7 +11,7 @@ import {
     emitMessage
 } from '../../socket'
 
-import { saveMessage } from '../../actions/messageActions'
+import { saveMessage, addToLastMessage } from '../../actions/messageActions'
 
 const styles = {
     root: {
@@ -32,7 +32,8 @@ class Chat extends Component {
     }
 
     submitMessage ({ message }) {
-        
+        const { messages } = this.props
+        const lastIndex = messages.length - 1
         let msg = {
             username: this.props.username,
             text: message
@@ -41,9 +42,13 @@ class Chat extends Component {
         // emit socket event
         emitMessage(msg, this.props.private)
         // add message to reducer
+        if (lastIndex >= 0 && messages[lastIndex] && messages[lastIndex].username === msg.username) {
+            this.props.resetForm()
+            return this.props.addToLastMessage(msg)
+        }
+
         this.props.saveMessage(msg)
         this.props.resetForm()
-        
     }
 
     componentDidUpdate() {
@@ -71,7 +76,8 @@ const mstp = state => ({
 
 const mdtp = dispatch => ({
     saveMessage: message => dispatch(saveMessage(message)),
-    resetForm: () => dispatch(reset('messageForm'))
+    resetForm: () => dispatch(reset('messageForm')),
+    addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
 export default connect(mstp, mdtp)(withStyles(styles)(Chat))

@@ -7,7 +7,7 @@ const styles = {
     square: {
         height: '100%',
         width: '100%',
-        backgroundColor: 'brown',
+        backgroundColor: '#ffffff',
         position: 'relative'
     }
 }
@@ -19,10 +19,10 @@ const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClic
     if (turn === 'Player 1') {
         checkColor = '#F1F1FF';
     } else if (turn === 'Player 2') {
-        checkColor = '#e4a6ae'
+        checkColor = '#e35568'
     }
 
-    let color = ((row + column) % 2) === 0 ? '#B93848' : '#232621';
+    let color = ((row + column) % 2) === 0 ? '#ffffff' : '#453c7a';
    
     let styles = {
         backgroundColor: suggested ? 'blue' : color,

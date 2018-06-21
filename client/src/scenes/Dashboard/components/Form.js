@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 
 import { withStyles } from 'material-ui/styles'
 import Button from 'material-ui/Button'
-import RenderedTextField from './RenderedTextField'
+import RenderedTextField from '../../../components/RenderedTextField'
 
 import { asyncValidate, validate } from './validation'
 import { saveUsername } from '../../../actions/userActions'
