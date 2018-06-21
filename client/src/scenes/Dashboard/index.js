@@ -13,7 +13,11 @@ import {
     removeUser,
     logout
 } from '../../actions/userActions'
-import { saveMessage, cleanHistory } from '../../actions/messageActions'
+import { 
+    saveMessage, 
+    cleanHistory, 
+    addToLastMessage 
+} from '../../actions/messageActions'
 import { setPlayOptions } from '../../actions/playActions'
 
 import { 
@@ -52,7 +56,8 @@ const styles = {
         display: 'flex',
         alignItems: "center",
         padding: "0 20px",
-        textAlign: "left"
+        textAlign: "left",
+        marginTop: "15px"
     },
     logout: {
         textAlign: "right"
@@ -96,6 +101,12 @@ class Dashboard extends Component {
         })
 
         subscribeToMessage((err, message) => {
+            const { messages } = this.props;
+            const lastIndex = messages.length - 1;
+
+            if (lastIndex >= 0 && messages[lastIndex] && messages[lastIndex].username === message.username)
+                return this.props.addToLastMessage(message)
+
             this.props.saveMessage(message)
         })
 
@@ -300,9 +311,10 @@ class Dashboard extends Component {
     }
 }
 
-const mstp = ({ username, activeUsers }) => ({
+const mstp = ({ username, activeUsers, messages }) => ({
     username,
-    activeUsers
+    activeUsers,
+    messages,
 })
 
 const mdtp = dispatch => ({
@@ -313,7 +325,8 @@ const mdtp = dispatch => ({
     setPlayOptions: side => dispatch(setPlayOptions(side)),
     saveUsername: username => dispatch(saveUsername(username)),
     logout: () => dispatch(logout()),
-    cleanMessageHistory: () => dispatch(cleanHistory())
+    cleanMessageHistory: () => dispatch(cleanHistory()),
+    addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

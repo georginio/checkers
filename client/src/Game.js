@@ -21,7 +21,7 @@ import {
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
-import { saveMessage } from './actions/messageActions'
+import { saveMessage, addToLastMessage } from './actions/messageActions'
 
 import fastEndState from './data/fastEndState'
 // import defaultState from './data/defaultState'
@@ -117,6 +117,12 @@ class Game extends Component {
         })
 
         subscribeToPrivateMessage((err, message) => {
+            const { messages } = this.props;
+            const lastIndex = messages.length - 1;
+
+            if (lastIndex >= 0 && messages[lastIndex] && messages[lastIndex].username === message.username)
+                return this.props.addToLastMessage(message)
+
             this.props.saveMessage(message)
         })
         
@@ -214,12 +220,8 @@ class Game extends Component {
     }
 
     handleSquareClick (e, row, column) {
-        if (
-            this.mustMove && 
-            this.isSuggested(row, column) && 
-            this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn
-        ) this._move(row, column)
-  
+        if (this.mustMove && this.isSuggested(row, column) && this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn)
+            this._move(row, column)
     }
 
     isSuggested(row, column) {
@@ -253,309 +255,289 @@ class Game extends Component {
         return play.side
     }
 
+    _checkForLeftTopKill(squares, suggestedSquares, row, column) {
+
+        
+        let currentRow = row - 1; 
+        let currentColumn = column - 1;
+
+        if (currentRow > 0 && currentRow <= 7 && currentColumn > 0 && currentColumn <= 7 && this.bannedDirection !== 'TOP_LEFT') {
+            let suggestedKill = false;
+            
+            while (currentRow >= 0 && currentRow <= 7 && currentColumn >= 0 && currentColumn <= 7) {
+
+                if ( squares[currentRow][currentColumn] && 
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow - 1] && 
+                    squares[currentRow - 1][currentColumn - 1] && 
+                    !squares[currentRow - 1][currentColumn - 1].player && !suggestedKill ) {
+
+                    let innerRow = currentRow - 1;
+                    let innerColumn = currentColumn - 1;
+
+                    suggestedSquares.push(squares[innerRow][innerColumn]);
+                    suggestedKill = true;
+
+                    while(innerRow >= 0 && innerColumn >= 0) {
+
+                        let innerSuggested = squares[innerRow][innerColumn]; 
+
+                        if (innerSuggested && !innerSuggested.player)
+                            suggestedSquares.push(innerSuggested);
+
+                        else if (innerSuggested && innerSuggested.player)
+                            break;
+
+                        innerRow -= 1;
+                        innerColumn -= 1;
+                    }
+
+                    this._addKillTarget({ 
+                        row: currentRow, 
+                        column: currentColumn
+                    });
+                }
+
+                else if (suggestedKill || (
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow - 1] && 
+                    squares[currentRow - 1][currentColumn - 1] && 
+                    squares[currentRow - 1][currentColumn - 1].player)
+                ) break;
+                
+                currentRow = currentRow - 1;
+                currentColumn = currentColumn - 1;
+            }
+        }
+    }
+
+    _checkForRightTopKill(squares, suggestedSquares, row, column) {
+        
+        let currentRow = row - 1;
+        let currentColumn = column + 1;
+
+        if (currentRow > 0 && currentRow <= 7 && currentColumn < 7 && currentColumn >= 0 && this.bannedDirection !== 'TOP_RIGHT') {
+            let suggestedKill = false;
+
+            while (currentRow >= 0 && currentRow <= 7 && currentColumn <= 7 && currentColumn >= 0) {
+
+                if ( squares[currentRow][currentColumn] && 
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow - 1] && 
+                    squares[currentRow - 1][currentColumn + 1] && 
+                    !squares[currentRow - 1][currentColumn + 1].player && 
+                    !suggestedKill ) {
+
+                    let innerRow = currentRow - 1;
+                    let innerColumn = currentColumn + 1;
+
+                    suggestedSquares.push(squares[innerRow][innerColumn]);
+                    suggestedKill = true;
+
+                    while(innerRow >= 0 && innerColumn <= 7) {
+
+                        let innerSuggested = squares[innerRow][innerColumn]; 
+
+                        if (innerSuggested && !innerSuggested.player)
+                            suggestedSquares.push(innerSuggested);
+
+                        else if (innerSuggested && innerSuggested.player)
+                            break;
+
+                        innerRow -= 1;
+                        innerColumn += 1;
+                    }
+
+                    this._addKillTarget({ 
+                        row: currentRow, 
+                        column: currentColumn
+                    });
+                }
+
+                else if (suggestedKill || (
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow - 1] && 
+                    squares[currentRow - 1][currentColumn + 1] && 
+                    squares[currentRow - 1][currentColumn + 1].player)
+                ) break;
+                
+                currentRow = currentRow - 1;
+                currentColumn = currentColumn + 1;
+            }
+        }
+    }
+
+    _checkForLeftBottomKill(squares, suggestedSquares, row, column) {
+        
+        let currentRow = row + 1; 
+        let currentColumn = column - 1;
+
+        if (currentRow >= 0 && currentRow < 7 && currentColumn > 0 && currentColumn <= 7 && this.bannedDirection !== 'BOTTOM_LEFT') {
+            let suggestedKill = false;
+            while (currentRow >= 0 && currentRow <= 7 && currentColumn >= 0 && currentColumn <= 7) {
+
+                if (squares[currentRow][currentColumn] && 
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow + 1] &&
+                    squares[currentRow + 1][currentColumn - 1] && 
+                    !squares[currentRow + 1][currentColumn - 1].player && !suggestedKill ) {
+
+                    let innerRow = currentRow + 1;
+                    let innerColumn = currentColumn - 1;
+
+                    suggestedSquares.push(squares[innerRow][innerColumn]);
+                    suggestedKill = true;
+
+                    while(innerRow <= 7 && innerColumn >= 0) {
+
+                        let innerSuggested = squares[innerRow][innerColumn]; 
+
+                        if (innerSuggested && !innerSuggested.player)
+                            suggestedSquares.push(innerSuggested);
+
+                        else if (innerSuggested && innerSuggested.player)
+                            break;
+
+                        innerRow += 1;
+                        innerColumn -= 1;
+                    }
+
+                    this._addKillTarget({ 
+                        row: currentRow, 
+                        column: currentColumn
+                    });
+                }
+
+                else if (suggestedKill || (
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow + 1] &&
+                    squares[currentRow + 1][currentColumn - 1] && 
+                    squares[currentRow + 1][currentColumn - 1].player)
+                ) break;
+                
+                currentRow = currentRow + 1;
+                currentColumn = currentColumn - 1;
+            }
+        }
+    }
+
+    _checkForRightBottomKill(squares, suggestedSquares, row, column) {
+        
+        let currentRow = row + 1; 
+        let currentColumn = column + 1;
+
+        if (currentRow >= 0 && currentRow < 7 && currentColumn >= 0 && currentColumn < 7  && this.bannedDirection !== 'BOTTOM_RIGHT') {
+            let suggestedKill = false;
+
+            while (currentRow >= 0 && currentRow <= 7 && currentColumn >= 0 && currentColumn <= 7) {
+                
+                if ( squares[currentRow][currentColumn] && 
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow + 1] && 
+                    squares[currentRow + 1][currentColumn + 1] && 
+                    !squares[currentRow + 1][currentColumn + 1].player && 
+                    !suggestedKill ) {
+
+                    let innerRow = currentRow + 1;
+                    let innerColumn = currentColumn + 1;
+
+                    suggestedSquares.push(squares[innerRow][innerColumn]);
+                    suggestedKill = true;
+
+                    while(innerRow <= 7 && innerColumn >= 0) {
+
+                        let innerSuggested = squares[innerRow][innerColumn]; 
+
+                        if (innerSuggested && !innerSuggested.player)
+                            suggestedSquares.push(innerSuggested);
+
+                        else if (innerSuggested && innerSuggested.player)
+                            break;
+
+                        innerRow += 1;
+                        innerColumn += 1;
+                    }
+
+                    this._addKillTarget({ 
+                        row: currentRow, 
+                        column: currentColumn
+                    });
+                }
+
+                else if (suggestedKill || (
+                    squares[currentRow][currentColumn].player && 
+                    squares[currentRow][currentColumn].player !== this.props.play.turn && 
+                    squares[currentRow + 1] && 
+                    squares[currentRow + 1][currentColumn + 1] && 
+                    squares[currentRow + 1][currentColumn + 1].player)
+                ) break;
+                
+                currentRow = currentRow + 1;
+                currentColumn = currentColumn + 1;
+            }
+        }
+    }
+
+    _checkForFirstPlayerKingKill(squares, suggestedSquares, row, column) {
+        if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn && !squares[row + 2][column + 2].player) 
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column + 1, row + 2, column + 2);
+        if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn && !squares[row + 2][column - 2].player) 
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column - 1, row + 2, column - 2);
+        if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) 
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row - 1, column + 1, row - 2, column + 2);
+        if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn && !squares[row - 2][column - 2].player)
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row - 1, column - 1, row - 2, column - 2);
+    }
+
+    _checkForSecondPlayerKingKill(squares, suggestedSquares, row, column) {
+        if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn &&  !squares[row - 2][column - 2].player) 
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row - 1, column - 1, row - 2, column - 2);
+        if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player)
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row - 1, column + 1, row - 2, column + 2);
+        if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn &&  !squares[row + 2][column - 2].player)
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column - 1, row + 2, column - 2);
+        if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn &&  !squares[row + 2][column + 2].player) 
+            this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column + 1, row + 2, column + 2);
+    }
+    // increase kill targets' and suggested squares' quantity 
+    _increaseTargetsAndSquares(squares, suggestedSquares, targetRowPos, targetColPos, squareRowPos, squareColPos) {
+        this._addKillTarget({ 
+            row: targetRowPos, 
+            column: targetColPos 
+        });
+        suggestedSquares.push(squares[squareRowPos][squareColPos]);
+    }
+
     _checkForKill(squares, row, column) {
 
         let suggestedSquares = []
 
         if (squares[row][column].king) {
-            // 4 criteria object
-            let leftTop = {
-                currentRow: row - 1, 
-                currentColumn: column - 1
-            };
-
-            let rightTop = {
-                currentRow: row - 1, 
-                currentColumn: column + 1
-            };
-
-            let leftBottom = {
-                currentRow: row + 1, 
-                currentColumn: column - 1
-            };
-
-            let rightBottom = {
-                currentRow: row + 1, 
-                currentColumn: column + 1
-            };
-
-
-            if (leftTop.currentRow > 0 && leftTop.currentRow <= 7 && leftTop.currentColumn > 0 && leftTop.currentColumn <= 7 && this.bannedDirection !== 'TOP_LEFT') {
-                let suggestedKill = false;
-                
-                while (leftTop.currentRow >= 0 && leftTop.currentRow <= 7 && leftTop.currentColumn >= 0 && leftTop.currentColumn <= 7) {
-
-                    if ( squares[leftTop.currentRow][leftTop.currentColumn] && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
-                        squares[leftTop.currentRow - 1] && 
-                        squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
-                        !squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player && !suggestedKill ) {
-
-                        let innerRow = leftTop.currentRow - 1;
-                        let innerColumn = leftTop.currentColumn - 1;
-
-                        suggestedSquares.push(squares[innerRow][innerColumn]);
-                        suggestedKill = true;
-
-                        while(innerRow >= 0 && innerColumn >= 0) {
-
-                            let innerSuggested = squares[innerRow][innerColumn]; 
-
-                            if (innerSuggested && !innerSuggested.player)
-                                suggestedSquares.push(innerSuggested);
-
-                            else if (innerSuggested && innerSuggested.player)
-                                break;
-
-                            innerRow -= 1;
-                            innerColumn -= 1;
-                        }
-
-                        this._addKillTarget({ 
-                            row: leftTop.currentRow, 
-                            column: leftTop.currentColumn
-                        });
-                    }
-
-                    else if (suggestedKill || (
-                        squares[leftTop.currentRow][leftTop.currentColumn].player && 
-                        squares[leftTop.currentRow][leftTop.currentColumn].player !== this.props.play.turn && 
-                        squares[leftTop.currentRow - 1] && 
-                        squares[leftTop.currentRow - 1][leftTop.currentColumn - 1] && 
-                        squares[leftTop.currentRow - 1][leftTop.currentColumn - 1].player)
-                    ) break;
-                    
-                    leftTop.currentRow = leftTop.currentRow - 1;
-                    leftTop.currentColumn = leftTop.currentColumn - 1;
-                }
-            }
-
-            if (rightTop.currentRow > 0 && rightTop.currentRow <= 7 && rightTop.currentColumn < 7 && rightTop.currentColumn >= 0 && this.bannedDirection !== 'TOP_RIGHT') {
-                let suggestedKill = false;
-
-                while (rightTop.currentRow >= 0 && rightTop.currentRow <= 7 && rightTop.currentColumn <= 7 && rightTop.currentColumn >= 0) {
-
-                    if ( squares[rightTop.currentRow][rightTop.currentColumn] && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
-                        squares[rightTop.currentRow - 1] && 
-                        squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
-                        !squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player && 
-                        !suggestedKill ) {
-
-                        let innerRow = rightTop.currentRow - 1;
-                        let innerColumn = rightTop.currentColumn + 1;
-
-                        suggestedSquares.push(squares[innerRow][innerColumn]);
-                        suggestedKill = true;
-
-                        while(innerRow >= 0 && innerColumn <= 7) {
-
-                            let innerSuggested = squares[innerRow][innerColumn]; 
-
-                            if (innerSuggested && !innerSuggested.player)
-                                suggestedSquares.push(innerSuggested);
-
-                            else if (innerSuggested && innerSuggested.player)
-                                break;
-
-                            innerRow -= 1;
-                            innerColumn += 1;
-                        }
-
-                        this._addKillTarget({ 
-                            row: rightTop.currentRow, 
-                            column: rightTop.currentColumn
-                        });
-                    }
-
-                    else if (suggestedKill || (
-                        squares[rightTop.currentRow][rightTop.currentColumn].player && 
-                        squares[rightTop.currentRow][rightTop.currentColumn].player !== this.props.play.turn && 
-                        squares[rightTop.currentRow - 1] && 
-                        squares[rightTop.currentRow - 1][rightTop.currentColumn + 1] && 
-                        squares[rightTop.currentRow - 1][rightTop.currentColumn + 1].player)
-                    ) break;
-                    
-                    rightTop.currentRow = rightTop.currentRow - 1;
-                    rightTop.currentColumn = rightTop.currentColumn + 1;
-                }
-            }
-
-            if (leftBottom.currentRow >= 0 && leftBottom.currentRow < 7 && leftBottom.currentColumn > 0 && leftBottom.currentColumn <= 7 && this.bannedDirection !== 'BOTTOM_LEFT') {
-                let suggestedKill = false;
-                while (leftBottom.currentRow >= 0 && leftBottom.currentRow <= 7 && leftBottom.currentColumn >= 0 && leftBottom.currentColumn <= 7) {
-
-                    if (squares[leftBottom.currentRow][leftBottom.currentColumn] && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
-                        squares[leftBottom.currentRow + 1] &&
-                        squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
-                        !squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player && !suggestedKill ) {
-
-                        let innerRow = leftBottom.currentRow + 1;
-                        let innerColumn = leftBottom.currentColumn - 1;
-
-                        suggestedSquares.push(squares[innerRow][innerColumn]);
-                        suggestedKill = true;
-
-                        while(innerRow <= 7 && innerColumn >= 0) {
-
-                            let innerSuggested = squares[innerRow][innerColumn]; 
-
-                            if (innerSuggested && !innerSuggested.player)
-                                suggestedSquares.push(innerSuggested);
-
-                            else if (innerSuggested && innerSuggested.player)
-                                break;
-
-                            innerRow += 1;
-                            innerColumn -= 1;
-                        }
-
-                        this._addKillTarget({ 
-                            row: leftBottom.currentRow, 
-                            column: leftBottom.currentColumn
-                        });
-                    }
-
-                    else if (suggestedKill || (
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player && 
-                        squares[leftBottom.currentRow][leftBottom.currentColumn].player !== this.props.play.turn && 
-                        squares[leftBottom.currentRow + 1] &&
-                        squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1] && 
-                        squares[leftBottom.currentRow + 1][leftBottom.currentColumn - 1].player)
-                    ) break;
-                    
-                    leftBottom.currentRow = leftBottom.currentRow + 1;
-                    leftBottom.currentColumn = leftBottom.currentColumn - 1;
-                }
-            }
-
-            if (rightBottom.currentRow >= 0 && rightBottom.currentRow < 7 && rightBottom.currentColumn >= 0 && rightBottom.currentColumn < 7  && this.bannedDirection !== 'BOTTOM_RIGHT') {
-                let suggestedKill = false;
-
-                while (rightBottom.currentRow >= 0 && rightBottom.currentRow <= 7 && rightBottom.currentColumn >= 0 && rightBottom.currentColumn <= 7) {
-                    
-                    if ( squares[rightBottom.currentRow][rightBottom.currentColumn] && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
-                        squares[rightBottom.currentRow + 1] && 
-                        squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
-                        !squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player && 
-                        !suggestedKill ) {
-
-                        let innerRow = rightBottom.currentRow + 1;
-                        let innerColumn = rightBottom.currentColumn + 1;
-
-                        suggestedSquares.push(squares[innerRow][innerColumn]);
-                        suggestedKill = true;
-
-                        while(innerRow <= 7 && innerColumn >= 0) {
-
-                            let innerSuggested = squares[innerRow][innerColumn]; 
-
-                            if (innerSuggested && !innerSuggested.player)
-                                suggestedSquares.push(innerSuggested);
-
-                            else if (innerSuggested && innerSuggested.player)
-                                break;
-
-                            innerRow += 1;
-                            innerColumn += 1;
-                        }
-
-                        this._addKillTarget({ 
-                            row: rightBottom.currentRow, 
-                            column: rightBottom.currentColumn
-                        });
-                    }
-
-                    else if (suggestedKill || (
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player && 
-                        squares[rightBottom.currentRow][rightBottom.currentColumn].player !== this.props.play.turn && 
-                        squares[rightBottom.currentRow + 1] && 
-                        squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1] && 
-                        squares[rightBottom.currentRow + 1][rightBottom.currentColumn + 1].player)
-                    ) break;
-                    
-                    rightBottom.currentRow = rightBottom.currentRow + 1;
-                    rightBottom.currentColumn = rightBottom.currentColumn + 1;
-                }
-            }
+            this._checkForLeftTopKill(squares, suggestedSquares, row, column);
+            this._checkForRightTopKill(squares, suggestedSquares, row, column);
+            this._checkForLeftBottomKill(squares, suggestedSquares, row, column);
+            this._checkForRightBottomKill(squares, suggestedSquares, row, column);
         } else if (!squares[row][column].king && this.props.play.turn === PLAYER_1) {
-
-            if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn && !squares[row + 2][column + 2].player) {
-                this._addKillTarget({ 
-                    row: row + 1, 
-                    column: column + 1 
-                });
-                suggestedSquares.push(squares[row + 2][column + 2]);
-            }
-            if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn && !squares[row + 2][column - 2].player) {
-                this._addKillTarget({ 
-                    row: row + 1, 
-                    column: column - 1 
-                });
-                suggestedSquares.push(squares[row + 2][column - 2]);
-            }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
-                this._addKillTarget({ 
-                    row: row - 1, 
-                    column: column + 1 
-                });
-                suggestedSquares.push(squares[row - 2][column + 2]);
-            }
-            if (row > 1 && column > 1 && column <= 7 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn && !squares[row - 2][column - 2].player) {
-                this._addKillTarget({ 
-                    row: row - 1, 
-                    column: column - 1 
-                });
-                suggestedSquares.push(squares[row - 2][column - 2]);
-            }
+            this._checkForFirstPlayerKingKill(squares, suggestedSquares, row, column);
         } else if (!squares[row][column].king && this.props.play.turn === PLAYER_2) {
-            if (row > 1 && column > 1 && squares[row - 1][column - 1].player && squares[row - 1][column - 1].player !== this.props.play.turn &&  !squares[row - 2][column - 2].player) {
-                this._addKillTarget({ 
-                    row: row - 1, 
-                    column: column - 1 
-                });
-                suggestedSquares.push(squares[row - 2][column - 2]);
-            }
-            if (row > 1 && column < 6 && squares[row - 1][column + 1].player && squares[row - 1][column + 1].player !== this.props.play.turn && !squares[row - 2][column + 2].player) {
-                this._addKillTarget({ 
-                    row: row - 1, 
-                    column: column + 1 
-                });
-                suggestedSquares.push(squares[row - 2][column + 2]);
-            }
-            if (row < 6 && column > 1 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn &&  !squares[row + 2][column - 2].player) {
-                this._addKillTarget({ 
-                    row: row + 1, 
-                    column: column - 1 
-                });
-                suggestedSquares.push(squares[row + 2][column - 2]);
-            }
-            if (row < 6 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn &&  !squares[row + 2][column + 2].player) {
-                this._addKillTarget({ 
-                    row: row + 1, 
-                    column: column + 1 
-                });
-                suggestedSquares.push(squares[row + 2][column + 2]);
-            }
+            this._checkForSecondPlayerKingKill(squares, suggestedSquares, row, column);
         }
 
         return suggestedSquares
     }
 
     _checkForKing(checker) {
-        
-        if (checker.player === PLAYER_1 && checker.row === 7) {
+        if (checker.player === PLAYER_1 && checker.row === 7)
             checker.king = true;
-        } else if (checker.player === PLAYER_2 && checker.row === 0) {
+        else if (checker.player === PLAYER_2 && checker.row === 0)
             checker.king = true;
-        }
-
     }
 
     _deactivateAllchecks(squares) {
@@ -811,9 +793,6 @@ class Game extends Component {
                     leftTop.currentRow = leftTop.currentRow - 1;
                     leftTop.currentColumn = leftTop.currentColumn - 1;
                 }
-            // }
-
-            // if (rightTop.currentRow > 0 && rightTop.currentColumn <= 7 && this.killTarget.length === 0) {
 
                 while (rightTop.currentRow >= 0 && rightTop.currentColumn <= 7) {
 
@@ -827,9 +806,6 @@ class Game extends Component {
                     rightTop.currentRow = rightTop.currentRow - 1;
                     rightTop.currentColumn = rightTop.currentColumn + 1;
                 }
-            // }
-
-            // if (leftBottom.currentRow < 7 && leftBottom.currentColumn > 0 && this.killTarget.length === 0) {
 
                 while (leftBottom.currentRow <= 7 && leftBottom.currentColumn >= 0) {
 
@@ -843,9 +819,6 @@ class Game extends Component {
                     leftBottom.currentRow = leftBottom.currentRow + 1;
                     leftBottom.currentColumn = leftBottom.currentColumn - 1;
                 }
-            // }
-
-            // if (rightBottom.currentRow < 7 && rightBottom.currentColumn <= 7 && this.killTarget.length === 0) {
 
                 while (rightBottom.currentRow <= 7 && rightBottom.currentColumn <= 7) {
 
@@ -908,15 +881,17 @@ class Game extends Component {
 
 }
 
-const mstp = ({ play, username }) => ({
+const mstp = ({ play, username, messages }) => ({
     play,
-    username
+    username,
+    messages
 })
 
 const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn)),
     resetOptions: () => dispatch(resetOptions()),
     saveMessage: message => dispatch(saveMessage(message)),
+    addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
 // export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))

@@ -1,16 +1,14 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-const socket = require('socket.io')
-const redis = require('redis');
+const socket = require('socket.io');
 const cors = require('cors');
 
 const initIO = require('./io');
 
-const port = 3300;
+const port = process.env.PORT || 3300;
 const server = app.listen(port, () => console.log('app is running on a port ' + port));
 const io = socket.listen(server);
-const client = redis.createClient();
 
 const activeUsers = [];
 const rooms = {};
@@ -18,8 +16,6 @@ const rooms = {};
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
-
-client.on('connect', () => console.log('redis connected...'));
 
 app.post('/api/username/check', (req, res) => {
     let { username } = req.body;
@@ -39,6 +35,6 @@ app.delete('/api/users/all', (req, res) => {
     activeUsers = [];
 })
 
-app.get('*', (req, res) => res.send('olaa negro'));
+app.get('*', (req, res) => res.send('not found'));
 
-initIO(io, activeUsers, rooms, client);
+initIO(io, activeUsers, rooms);

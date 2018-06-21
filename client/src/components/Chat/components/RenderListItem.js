@@ -8,7 +8,6 @@ let styles = {
         flexDirection: 'column',
         padding: '8px 10px',
         fontSize: '14px',
-        borderBottom: '1px solid #bfbfbf',
         justifyContent: 'space-between'
     },
     username: {
@@ -23,10 +22,11 @@ let styles = {
     },
     text: {
         backgroundColor: '#3F51B5',
-        borderRadius: '20px',
-        padding: '8px',
-        margin: '4px',
-        textAlign: 'left'
+        borderRadius: '14px',
+        padding: '6px 8px',
+        margin: '0 0 2px 0',
+        textAlign: 'left',
+        display: 'inline-block'
     }
 }
 
@@ -35,7 +35,9 @@ const RenderListItem = ({ username, text, classes }) => {
         <div className={classes.root}>
             <strong className={classes.username}>{username}</strong>
             <div className={classes.textWrapper}>
-                <p className={classes.text}>{text}</p>   
+                {text.split('\n').map(message => {
+                    return <div><p className={classes.text}>{message}</p></div> 
+                })}
             </div>
         </div>
     )

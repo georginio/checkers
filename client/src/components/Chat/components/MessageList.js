@@ -8,7 +8,7 @@ const styles = {
     root: {
         borderBottom: '3px solid #bfbfbf',
         maxHeight: '90%',
-        overflowY: 'scroll'
+        overflowY: 'auto'
     }
 }
 
