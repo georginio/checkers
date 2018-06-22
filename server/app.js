@@ -10,7 +10,6 @@ const port = process.env.PORT || 3300;
 const server = app.listen(port, () => console.log('app is running on a port ' + port));
 const io = socket.listen(server);
 
-const activeUsers = [];
 const rooms = {};
 
 app.use(bodyParser.json());
@@ -37,4 +36,4 @@ app.delete('/api/users/all', (req, res) => {
 
 app.get('*', (req, res) => res.send('not found'));
 
-initIO(io, activeUsers, rooms);
+initIO(io, rooms);

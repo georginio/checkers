@@ -1,15 +1,16 @@
 const Game = require('./src/Game');
 const User = require('./src/User');
 const allGames = require('./src/AllGames');
+const UserList = require('./src/UserList');
 
-module.exports = (io, users, rooms) => {
+module.exports = (io, rooms) => {
 
     io.on('connection', (socket) => {
 
         socket.join('main');
 
         socket.on('disconnect', () => {
-            let index = users.findIndex(user => user.id === socket.id);
+            let index = UserList.findUserIndex(socket.id);
             let gameIndex = allGames.findGameIndex(socket.id);
 
             if (gameIndex > -1) {
@@ -20,7 +21,7 @@ module.exports = (io, users, rooms) => {
 
             if (index > -1) {
                 socket.broadcast.emit('logout', users[index].id);
-                users.splice(index, 1);
+                UserList.removeUser(index);
             }
         });
 
@@ -35,16 +36,17 @@ module.exports = (io, users, rooms) => {
         });
 
         socket.on('new-user', (username) => {
-            // send all user list to new socket before adding new socket to the list
-            let index = users.findIndex(user => user.id === socket.id || user.username === username)
+            // send full user list to new socket before adding new socket to the list
+            let index = UserList.findUserIndexByUsername(socket.id, username);
             
             if (index !== -1) 
                 return;
             
-            io.to(socket.id).emit('all-users', users)
+            io.to(socket.id).emit('all-users', UserList.getUsers())
 
             let user = new User(username, socket.id);
-            users.push(user);
+            UserList.addUser(user);
+
             socket.broadcast.emit('new-user', user);
         });
 
