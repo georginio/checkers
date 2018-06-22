@@ -1,5 +1,7 @@
 const Game = require('./src/Game');
-const games = [];
+const User = require('./src/User');
+const allGames = require('./src/AllGames');
+
 module.exports = (io, users, rooms) => {
 
     io.on('connection', (socket) => {
@@ -8,10 +10,10 @@ module.exports = (io, users, rooms) => {
 
         socket.on('disconnect', () => {
             let index = users.findIndex(user => user.id === socket.id);
-            let gameIndex = games.findIndex(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            let gameIndex = allGames.findGameIndex(socket.id);
 
             if (gameIndex > -1) {
-                let roomname = games[gameIndex].roomname;
+                let roomname = allGames.getRoomName(gameIndex);
                 io.to(roomname).emit('disconnected-user');
                 socket.leave(roomname);
             }
@@ -27,7 +29,7 @@ module.exports = (io, users, rooms) => {
         });
 
         socket.on('private-message', (message) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            let game = allGames.findGame(socket.id);
             if (game) 
                 socket.to(game.roomname).broadcast.emit('private-message', message);
         });
@@ -41,7 +43,7 @@ module.exports = (io, users, rooms) => {
             
             io.to(socket.id).emit('all-users', users)
 
-            let user = { username, id: socket.id };
+            let user = new User(username, socket.id);
             users.push(user);
             socket.broadcast.emit('new-user', user);
         });
@@ -65,7 +67,7 @@ module.exports = (io, users, rooms) => {
             socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
 
             let game = new Game(deliverer, { username: from, id: socket.id }, roomName);
-            games.push(game);
+            allGames.addGame(game);
         });
 
         socket.on('decline-invitation', (decline) => socket.to(decline.deliverer).emit('decline-invitation', decline));
@@ -78,55 +80,54 @@ module.exports = (io, users, rooms) => {
         })
 
         socket.on('left-room', () => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id == socket.id);
-            if (game) {
-                socket.leave(game.roomname);
+            const roomname = allGames.getRoomNameById(socket.id);
+
+            if (roomname) {
+                socket.leave(roomname);
                 socket.join('main');
             }
         })
 
         // after end game emitters
         socket.on('accept-replay', (id) => {
-            let game = games.find(game => game.player1.id === id || game.player2.id == id);
+            let game = allGames.findGame(id);
             if (game)
                 io.to(game.roomname).emit('restart-game')
         })
 
         socket.on('decline-replay', (id) => {
             socket.broadcast.emit('declined-replay');
-            let index = games.findIndex(game => game.player1.id === id || game.player2.id == id);
+            let index = allGames.findGameIndex(id);
             
             if (index > -1) {
-                let room = games[index].roomname;
+                let room = allGames.getRoomName(index);
                 socket.leave(room);
                 socket.join(room);
-                games.splice(index, 1);
+                allGames.removeGame(index);
             }
         });
         
         // listen for game emitters
         socket.on('check-move', (destination) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            const roomname = allGames.getRoomNameById(socket.id);
             
-            if (game) 
-                socket.to(game.roomname).broadcast.emit('check-move', destination);
-
+            if (roomname) 
+                socket.to(roomname).broadcast.emit('check-move', destination);
         });
 
         socket.on('switch-turn', (turn) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
-            
-            if (game) 
-                socket.to(game.roomname).broadcast.emit('switch-turn', turn);
+            const roomname = allGames.getRoomNameById(socket.id);
+
+            if (roomname) 
+                socket.to(roomname).broadcast.emit('switch-turn', turn);
         });
 
         socket.on('end-game', (winner) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
-            
-            if (game)
-                socket.to(game.roomname).broadcast.emit('end-game', winner);
+            const roomname = allGames.getRoomNameById(socket.id);
+
+            if (roomname)
+                socket.to(roomname).broadcast.emit('end-game', winner);
         });
-        
        
     });
 }
