@@ -57,23 +57,25 @@ const styles = {
         backgroundColor: '#ffffff',
         color: '#2196F3',
         display: 'flex',
-        alignItems: "center",
-        padding: "0 20px",
-        textAlign: "left",
-        marginTop: "15px"
+        alignItems: 'center',
+        padding: '0',
+        textAlign: 'left',
+        marginTop: '15px'
     },
     logout: {
-        textAlign: "right"
+        textAlign: 'right'
     },
     button: {
         color: '#2196F3',
-        fontWeight: "bold"
+        fontWeight: 'bold',
+        padding: '8px',
+        marginRight: '-8px'
     },
     power: {
         marginLeft: '5px'
     },
     paddings: {
-        "padding": "0 16px"
+        padding: '0 16px'
     }
 }
 
