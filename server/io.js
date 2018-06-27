@@ -1,71 +1,74 @@
 const Game = require('./src/Game');
-const games = [];
-module.exports = (io, users, rooms) => {
+const User = require('./src/User');
+const allGames = require('./src/AllGames');
+const UserList = require('./src/UserList');
+const rooms = require('./src/Rooms');
 
-    io.on('connection', (socket) => {
+module.exports = io => {
+
+    io.on('connection', socket => {
 
         socket.join('main');
 
         socket.on('disconnect', () => {
-            let index = users.findIndex(user => user.id === socket.id);
-            let gameIndex = games.findIndex(game => game.player1.id === socket.id || game.player2.id === socket.id);
+            const index = UserList.findUserIndex(socket.id);
+            const gameIndex = allGames.findGameIndex(socket.id);
 
             if (gameIndex > -1) {
-                let roomname = games[gameIndex].roomname;
+                const roomname = allGames.getRoomName(gameIndex);
                 io.to(roomname).emit('disconnected-user');
                 socket.leave(roomname);
             }
 
             if (index > -1) {
-                socket.broadcast.emit('logout', users[index].id);
-                users.splice(index, 1);
+                socket.broadcast.emit('logout', UserList.getUser(index).id);
+                UserList.removeUser(index);
             }
         });
 
-        socket.on('message', (message) => {
-            socket.to('main').broadcast.emit('message', message)
-        });
+        socket.on('message', message => socket.to('main').broadcast.emit('message', message));
 
-        socket.on('private-message', (message) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+        socket.on('private-message', message => {
+            const game = allGames.findGame(socket.id);
             if (game) 
                 socket.to(game.roomname).broadcast.emit('private-message', message);
         });
 
-        socket.on('new-user', (username) => {
-            // send all user list to new socket before adding new socket to the list
-            let index = users.findIndex(user => user.id === socket.id || user.username === username)
+        socket.on('new-user', username => {
+            // send full user list to new socket before adding new socket to the list
+            const index = UserList.findUserIndexByUsername(socket.id, username);
             
             if (index !== -1) 
                 return;
             
-            io.to(socket.id).emit('all-users', users)
+            io.to(socket.id).emit('all-users', UserList.getUsers())
 
-            let user = { username, id: socket.id };
-            users.push(user);
+            const user = new User(username, socket.id);
+            UserList.addUser(user);
+
             socket.broadcast.emit('new-user', user);
         });
 
         // before game emitters 
-        socket.on('play-invitation', (invitation) => {
+        socket.on('play-invitation', invitation => {
             invitation.deliverer = socket.id;
             socket.to(invitation.id).emit('play-invitation', invitation);
         });
 
         socket.on('accept-invitation', ({ from, deliverer }) => {
-            let { username, id } = deliverer;
-            let roomName = from + username + Date.now().toString(); 
-            
+            const { username, id } = deliverer;
+            const roomName = from + username + Date.now().toString(); 
+
             rooms[roomName] = {
                 player1: username,
                 player2: from
             };
+            
             socket.leave('main');
             socket.join(roomName);
             socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
-
-            let game = new Game(deliverer, { username: from, id: socket.id }, roomName);
-            games.push(game);
+            
+            allGames.addGame(new Game(deliverer, { username: from, id: socket.id }, roomName));
         });
 
         socket.on('decline-invitation', (decline) => socket.to(decline.deliverer).emit('decline-invitation', decline));
@@ -75,58 +78,67 @@ module.exports = (io, users, rooms) => {
             socket.join(roomName);
             // strange way to give sides to players
             io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
-        })
 
-        socket.on('left-room', () => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id == socket.id);
-            if (game) {
-                socket.leave(game.roomname);
-                socket.join('main');
-            }
-        })
+            const socketIds = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
+            socketIds.forEach(socketId => {
+                UserList.getUsers().forEach(user => {
+                    if (user.id === socketId) 
+                        user.setIsBusy(true);
+                });
+            });
+            io.to('main').emit('busy-users', socketIds);
+        });
 
         // after end game emitters
-        socket.on('accept-replay', (id) => {
-            let game = games.find(game => game.player1.id === id || game.player2.id == id);
+        socket.on('accept-replay', id => {
+            const game = allGames.findGame(id);
             if (game)
                 io.to(game.roomname).emit('restart-game')
         })
 
-        socket.on('decline-replay', (id) => {
+        socket.on('decline-replay', () => {
             socket.broadcast.emit('declined-replay');
-            let index = games.findIndex(game => game.player1.id === id || game.player2.id == id);
+            const index = allGames.findGameIndex(socket.id);
             
             if (index > -1) {
-                let room = games[index].roomname;
-                socket.leave(room);
-                socket.join(room);
-                games.splice(index, 1);
+                const roomname = allGames.getRoomName(index);
+                
+                Object.keys(io.sockets.adapter.rooms).forEach(name => {
+                     if (name === roomname) {
+                        const room = io.sockets.adapter.rooms[roomname];
+                        Object.keys(room.sockets).forEach(socketId => {
+                            const socket = io.sockets.connected[socketId];
+                            socket.leave(roomname);
+                            socket.join('main');
+                        });
+                    }
+                });
+
+                allGames.removeGame(index);
             }
         });
         
         // listen for game emitters
-        socket.on('check-move', (destination) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
+        socket.on('check-move', destination => {
+            const roomname = allGames.getRoomNameById(socket.id);
             
-            if (game) 
-                socket.to(game.roomname).broadcast.emit('check-move', destination);
-
+            if (roomname) 
+                socket.to(roomname).broadcast.emit('check-move', destination);
         });
 
-        socket.on('switch-turn', (turn) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
-            
-            if (game) 
-                socket.to(game.roomname).broadcast.emit('switch-turn', turn);
+        socket.on('switch-turn', turn => {
+            const roomname = allGames.getRoomNameById(socket.id);
+
+            if (roomname) 
+                socket.to(roomname).broadcast.emit('switch-turn', turn);
         });
 
-        socket.on('end-game', (winner) => {
-            let game = games.find(game => game.player1.id === socket.id || game.player2.id === socket.id);
-            
-            if (game)
-                socket.to(game.roomname).broadcast.emit('end-game', winner);
+        socket.on('end-game', winner => {
+            const roomname = allGames.getRoomNameById(socket.id);
+
+            if (roomname)
+                socket.to(roomname).broadcast.emit('end-game', winner);
         });
-        
        
     });
 }

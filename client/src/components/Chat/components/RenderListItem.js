@@ -35,8 +35,8 @@ const RenderListItem = ({ username, text, classes }) => {
         <div className={classes.root}>
             <strong className={classes.username}>{username}</strong>
             <div className={classes.textWrapper}>
-                {text.split('\n').map(message => {
-                    return <div><p className={classes.text}>{message}</p></div> 
+                {text.split('\n').map((message, index) => {
+                    return <div key={'messages' + index}><p className={classes.text}>{message}</p></div> 
                 })}
             </div>
         </div>

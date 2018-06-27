@@ -25,7 +25,7 @@ const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClic
     let color = ((row + column) % 2) === 0 ? '#ffffff' : '#453c7a';
    
     let styles = {
-        backgroundColor: suggested ? 'blue' : color,
+        backgroundColor: suggested ? '#16A8C7' : color,
     };
 
     if (checkColor)

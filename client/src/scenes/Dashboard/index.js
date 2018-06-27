@@ -11,7 +11,8 @@ import {
     addActiveUser,
     saveUsername, 
     removeUser,
-    logout
+    logout,
+    removeBusyUsers
 } from '../../actions/userActions'
 import { 
     saveMessage, 
@@ -29,11 +30,13 @@ import {
     subscribeToDeclinedInvitation,
     subscribeToAccpt,
     subscribeToGameStart,
+    subscribeToBusyUsers,
     emitInvitation,
     emitDeclineInvitation,
     emitAccept,
     emitJoinRoom,
-    emitNewUser
+    emitNewUser,
+    unsubscribeFrom
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -54,23 +57,25 @@ const styles = {
         backgroundColor: '#ffffff',
         color: '#2196F3',
         display: 'flex',
-        alignItems: "center",
-        padding: "0 20px",
-        textAlign: "left",
-        marginTop: "15px"
+        alignItems: 'center',
+        padding: '0',
+        textAlign: 'left',
+        marginTop: '15px'
     },
     logout: {
-        textAlign: "right"
+        textAlign: 'right'
     },
     button: {
         color: '#2196F3',
-        fontWeight: "bold"
+        fontWeight: 'bold',
+        padding: '8px',
+        marginRight: '-8px'
     },
     power: {
         marginLeft: '5px'
     },
     paddings: {
-        "padding": "0 16px"
+        padding: '0 16px'
     }
 }
 
@@ -160,6 +165,8 @@ class Dashboard extends Component {
 
         })
 
+        subscribeToBusyUsers((err, ids) => this.props.removeBusyUsers(ids))
+
         this.emitInvitation = this.emitInvitation.bind(this)
         this.handleClose = this.handleClose.bind(this)
         this.handleOpen = this.handleOpen.bind(this)
@@ -177,6 +184,16 @@ class Dashboard extends Component {
 
     componentWillUnmount() {
         clearInterval(this.time)
+        unsubscribeFrom([
+            'new-user',
+            'logout',
+            'all-users',
+            'play-invitation',
+            'decline-invitation',
+            'accepted-invitation',
+            'game-start',
+            'message'
+        ])
     }
 
     handleOpen(message) {
@@ -326,7 +343,8 @@ const mdtp = dispatch => ({
     saveUsername: username => dispatch(saveUsername(username)),
     logout: () => dispatch(logout()),
     cleanMessageHistory: () => dispatch(cleanHistory()),
-    addToLastMessage: message => dispatch(addToLastMessage(message))
+    addToLastMessage: message => dispatch(addToLastMessage(message)),
+    removeBusyUsers: ids => dispatch(removeBusyUsers(ids))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

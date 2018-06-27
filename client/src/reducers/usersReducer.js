@@ -6,6 +6,8 @@ export default function users (state = null, action) {
             return [...state, action.payload]
         case 'REMOVE_ACTIVE_USER':
             return state.filter(user => user.id !== action.payload)
+        case 'REMOVE_BUSY_USERS': 
+            return state.filter(user => action.payload.indexOf(user.id) === -1)
         default:
             return state
     }

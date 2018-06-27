@@ -17,11 +17,16 @@ import {
     emitEndGame,
     emitDeclineReplay,
     emitAcceptReplay,
-    emitLeftoRoom
+    emitLeftoRoom,
+    unsubscribeFrom
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
-import { saveMessage, addToLastMessage } from './actions/messageActions'
+import { 
+    saveMessage, 
+    addToLastMessage, 
+    cleanHistory 
+} from './actions/messageActions'
 
 import fastEndState from './data/fastEndState'
 // import defaultState from './data/defaultState'
@@ -95,7 +100,6 @@ class Game extends Component {
 
         subscribeToDeclinedGame(err => { 
             this._endGame()
-            emitLeftoRoom() 
         })
 
         subscribeToRestartGame(err => {
@@ -132,6 +136,20 @@ class Game extends Component {
         this._defineTurnBy()
         let squares = this._initBoard()
         this.setState({ squares })
+    }
+
+    componentWillUnmount() {
+        unsubscribeFrom([
+            'check-move',
+            'switch-turn',
+            'end-game',
+            'declined-replay',
+            'restart-game',
+            'disconnected-user',
+            'private-message'
+        ])
+        
+        this.props.cleanChatHistory()
     }
 
     initProps () {
@@ -891,10 +909,10 @@ const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn)),
     resetOptions: () => dispatch(resetOptions()),
     saveMessage: message => dispatch(saveMessage(message)),
-    addToLastMessage: message => dispatch(addToLastMessage(message))
+    addToLastMessage: message => dispatch(addToLastMessage(message)),
+    cleanChatHistory: () => dispatch(cleanHistory())
 })
 
-// export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))
 
 export default compose(
     withRouter,
