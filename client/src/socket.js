@@ -1,28 +1,28 @@
 import openSocket from 'socket.io-client'
 
-let socket = openSocket('http://localhost:3300')
+const socket = openSocket('http://localhost:3300')
 
 // subscribers
-let subscribeToMessage = cb => socket.on('message', message => cb(null, message))
-let subscribeToNewUser = cb => socket.on('new-user', user => cb(null, user))
-let subscribeToUserLogOut = cb => socket.on('logout', id => cb(null, id))
-let subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
-let subscribeToInvitation = cb => socket.on('play-invitation', invitation => cb(null, invitation))
-let subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', decline => cb(null, decline))
-let subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
-let subscribeToGameStart = cb => socket.on('game-start', options => cb(null, options))
-let subscribeToDeclinedGame = cb => socket.on('declined-replay', () => cb(null))
-let subscribeToRestartGame = cb => socket.on('restart-game', () => cb(null))
-let subscribeToDisconnect = cb => socket.on('disconnected-user', () => cb(null))
+const subscribeToMessage = cb => socket.on('message', message => cb(null, message))
+const subscribeToNewUser = cb => socket.on('new-user', user => cb(null, user))
+const subscribeToUserLogOut = cb => socket.on('logout', id => cb(null, id))
+const subscribeToAllUsers = cb => socket.on('all-users',users => cb(null, users))
+const subscribeToInvitation = cb => socket.on('play-invitation', invitation => cb(null, invitation))
+const subscribeToDeclinedInvitation = cb => socket.on('decline-invitation', decline => cb(null, decline))
+const subscribeToAccpt = cb => socket.on('accepted-invitation', accept => cb(null, accept))
+const subscribeToGameStart = cb => socket.on('game-start', options => cb(null, options))
+const subscribeToDeclinedGame = cb => socket.on('declined-replay', () => cb(null))
+const subscribeToRestartGame = cb => socket.on('restart-game', () => cb(null))
+const subscribeToDisconnect = cb => socket.on('disconnected-user', () => cb(null))
 
 //game subs
-let subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
-let subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
-let subscribeToEndGame = cb => socket.on('end-game', winner => cb(null, winner))
-let subscribeToPrivateMessage = cb => socket.on('private-message', message => cb(null, message))
+const subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
+const subscribeToSwitchTurn = cb => socket.on('switch-turn', turn => cb(null, turn))
+const subscribeToEndGame = cb => socket.on('end-game', winner => cb(null, winner))
+const subscribeToPrivateMessage = cb => socket.on('private-message', message => cb(null, message))
 
 // emitters
-let emitMessage = (message, privateMessage) => { 
+const emitMessage = (message, privateMessage) => { 
     let event = 'message'
 
     if (privateMessage)
@@ -30,18 +30,25 @@ let emitMessage = (message, privateMessage) => {
         
     socket.emit(event, message) 
 }
-let emitNewUser = username => socket.emit('new-user', username)
-let emitInvitation = invitation => socket.emit('play-invitation', invitation)
-let emitDeclineInvitation = decline => socket.emit('decline-invitation', decline)
-let emitAccept = accept => socket.emit('accept-invitation', accept)
-let emitJoinRoom = room => socket.emit('join-room', room)
-let emitDeclineReplay = opponentId => socket.emit('decline-replay', opponentId) 
-let emitAcceptReplay = opponentId => socket.emit('accept-replay', opponentId)
-let emitLeftoRoom = () => socket.emit('left-room');
+const emitNewUser = username => socket.emit('new-user', username)
+const emitInvitation = invitation => socket.emit('play-invitation', invitation)
+const emitDeclineInvitation = decline => socket.emit('decline-invitation', decline)
+const emitAccept = accept => socket.emit('accept-invitation', accept)
+const emitJoinRoom = room => socket.emit('join-room', room)
+const emitDeclineReplay = opponentId => socket.emit('decline-replay', opponentId) 
+const emitAcceptReplay = opponentId => socket.emit('accept-replay', opponentId)
+const emitLeftoRoom = () => socket.emit('left-room');
 // game emitters
-let emitMove = data => socket.emit('check-move', data)
-let emitSwitchTurn = turn => socket.emit('switch-turn', turn)
-let emitEndGame = winner => socket.emit('end-game', winner)
+const emitMove = data => socket.emit('check-move', data)
+const emitSwitchTurn = turn => socket.emit('switch-turn', turn)
+const emitEndGame = winner => socket.emit('end-game', winner)
+
+const unsubscribeFrom = (event) => {
+    if (Array.isArray(event)) 
+        event.forEach(e => socket.removeListener(e));
+    else 
+        socket.removeListener(event);
+} 
 
 export {
     // subs
@@ -74,6 +81,6 @@ export {
     // game emits 
     emitMove,
     emitSwitchTurn,
-    emitEndGame
+    emitEndGame,
+    unsubscribeFrom
 }
-

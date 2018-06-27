@@ -17,7 +17,8 @@ import {
     emitEndGame,
     emitDeclineReplay,
     emitAcceptReplay,
-    emitLeftoRoom
+    emitLeftoRoom,
+    unsubscribeFrom
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
@@ -95,7 +96,6 @@ class Game extends Component {
 
         subscribeToDeclinedGame(err => { 
             this._endGame()
-            emitLeftoRoom() 
         })
 
         subscribeToRestartGame(err => {
@@ -132,6 +132,18 @@ class Game extends Component {
         this._defineTurnBy()
         let squares = this._initBoard()
         this.setState({ squares })
+    }
+
+    componentWillUnmount() {
+        unsubscribeFrom([
+            'check-move',
+            'switch-turn',
+            'end-game',
+            'declined-replay',
+            'restart-game',
+            'disconnected-user',
+            'private-message'
+        ])
     }
 
     initProps () {
@@ -894,7 +906,6 @@ const mdtp = dispatch => ({
     addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
-// export default withRouter(connect(mstp, mdtp)(withStyles(styles)(GameHOC(Game))))
 
 export default compose(
     withRouter,

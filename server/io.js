@@ -10,41 +10,39 @@ module.exports = (io, rooms) => {
         socket.join('main');
 
         socket.on('disconnect', () => {
-            let index = UserList.findUserIndex(socket.id);
-            let gameIndex = allGames.findGameIndex(socket.id);
+            const index = UserList.findUserIndex(socket.id);
+            const gameIndex = allGames.findGameIndex(socket.id);
 
             if (gameIndex > -1) {
-                let roomname = allGames.getRoomName(gameIndex);
+                const roomname = allGames.getRoomName(gameIndex);
                 io.to(roomname).emit('disconnected-user');
                 socket.leave(roomname);
             }
 
             if (index > -1) {
-                socket.broadcast.emit('logout', users[index].id);
+                socket.broadcast.emit('logout', UserList.getUser(index).id);
                 UserList.removeUser(index);
             }
         });
 
-        socket.on('message', (message) => {
-            socket.to('main').broadcast.emit('message', message)
-        });
+        socket.on('message', (message) => socket.to('main').broadcast.emit('message', message));
 
         socket.on('private-message', (message) => {
-            let game = allGames.findGame(socket.id);
+            const game = allGames.findGame(socket.id);
             if (game) 
                 socket.to(game.roomname).broadcast.emit('private-message', message);
         });
 
         socket.on('new-user', (username) => {
             // send full user list to new socket before adding new socket to the list
-            let index = UserList.findUserIndexByUsername(socket.id, username);
+            const index = UserList.findUserIndexByUsername(socket.id, username);
             
             if (index !== -1) 
                 return;
             
             io.to(socket.id).emit('all-users', UserList.getUsers())
 
-            let user = new User(username, socket.id);
+            const user = new User(username, socket.id);
             UserList.addUser(user);
 
             socket.broadcast.emit('new-user', user);
@@ -57,9 +55,9 @@ module.exports = (io, rooms) => {
         });
 
         socket.on('accept-invitation', ({ from, deliverer }) => {
-            let { username, id } = deliverer;
-            let roomName = from + username + Date.now().toString(); 
-            
+            const { username, id } = deliverer;
+            const roomName = from + username + Date.now().toString(); 
+
             rooms[roomName] = {
                 player1: username,
                 player2: from
@@ -68,7 +66,7 @@ module.exports = (io, rooms) => {
             socket.join(roomName);
             socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
 
-            let game = new Game(deliverer, { username: from, id: socket.id }, roomName);
+            const game = new Game(deliverer, { username: from, id: socket.id }, roomName);
             allGames.addGame(game);
         });
 
@@ -81,30 +79,36 @@ module.exports = (io, rooms) => {
             io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
         })
 
-        socket.on('left-room', () => {
-            const roomname = allGames.getRoomNameById(socket.id);
-
-            if (roomname) {
-                socket.leave(roomname);
-                socket.join('main');
-            }
-        })
-
         // after end game emitters
         socket.on('accept-replay', (id) => {
-            let game = allGames.findGame(id);
+            const game = allGames.findGame(id);
             if (game)
                 io.to(game.roomname).emit('restart-game')
         })
 
         socket.on('decline-replay', (id) => {
             socket.broadcast.emit('declined-replay');
-            let index = allGames.findGameIndex(id);
+            const index = allGames.findGameIndex(socket.id);
+            
+            // let client = io.sockets.adapter.rooms;
+            // let io = io.sockets.connected;
             
             if (index > -1) {
-                let room = allGames.getRoomName(index);
-                socket.leave(room);
-                socket.join(room);
+                const roomname = allGames.getRoomName(index);
+                
+                Object.keys(io.sockets.adapter.rooms).forEach(name => {
+                     if (name === roomname) {
+                        const room = io.sockets.adapter.rooms[roomname];
+                        Object.keys(room.sockets).forEach(socketId => {
+                            const socket = io.sockets.connected[socketId];
+                            socket.leave(roomname);
+                            socket.join('main');
+                        });
+                    }
+                });
+
+                // socket.leave(roomname);
+                // socket.join('main');
                 allGames.removeGame(index);
             }
         });

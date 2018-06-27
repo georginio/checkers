@@ -33,7 +33,8 @@ import {
     emitDeclineInvitation,
     emitAccept,
     emitJoinRoom,
-    emitNewUser
+    emitNewUser,
+    unsubscribeFrom
 } from '../../socket'
 
 import ActiveUserList from './components/ActiveUserList/ActiveUserList'
@@ -177,6 +178,16 @@ class Dashboard extends Component {
 
     componentWillUnmount() {
         clearInterval(this.time)
+        unsubscribeFrom([
+            'new-user',
+            'logout',
+            'all-users',
+            'play-invitation',
+            'decline-invitation',
+            'accepted-invitation',
+            'game-start',
+            'message'
+        ])
     }
 
     handleOpen(message) {

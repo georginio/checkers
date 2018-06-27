@@ -22,7 +22,7 @@ class AllGames {
 
     getRoomNameById(id) {
         const gameIndex = this.findGameIndex(id); 
-        return gameIndex > -1 ? this.getRoomName(gameIndex) : null;
+        return (gameIndex > -1) ? this.getRoomName(gameIndex) : null;
     }
 
     getRoomName(index) {
