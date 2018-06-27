@@ -22,7 +22,11 @@ import {
 } from './socket'
 
 import { switchTurn, resetOptions } from './actions/playActions'
-import { saveMessage, addToLastMessage } from './actions/messageActions'
+import { 
+    saveMessage, 
+    addToLastMessage, 
+    cleanHistory 
+} from './actions/messageActions'
 
 import fastEndState from './data/fastEndState'
 // import defaultState from './data/defaultState'
@@ -144,6 +148,8 @@ class Game extends Component {
             'disconnected-user',
             'private-message'
         ])
+        
+        this.props.cleanChatHistory()
     }
 
     initProps () {
@@ -903,7 +909,8 @@ const mdtp = dispatch => ({
     switchTurn: turn => dispatch(switchTurn(turn)),
     resetOptions: () => dispatch(resetOptions()),
     saveMessage: message => dispatch(saveMessage(message)),
-    addToLastMessage: message => dispatch(addToLastMessage(message))
+    addToLastMessage: message => dispatch(addToLastMessage(message)),
+    cleanChatHistory: () => dispatch(cleanHistory())
 })
 
 
