@@ -11,7 +11,8 @@ import {
     addActiveUser,
     saveUsername, 
     removeUser,
-    logout
+    logout,
+    removeBusyUsers
 } from '../../actions/userActions'
 import { 
     saveMessage, 
@@ -29,6 +30,7 @@ import {
     subscribeToDeclinedInvitation,
     subscribeToAccpt,
     subscribeToGameStart,
+    subscribeToBusyUsers,
     emitInvitation,
     emitDeclineInvitation,
     emitAccept,
@@ -160,6 +162,8 @@ class Dashboard extends Component {
             this.props.history.push(`/game/${roomName}`)
 
         })
+
+        subscribeToBusyUsers((err, ids) => this.props.removeBusyUsers(ids))
 
         this.emitInvitation = this.emitInvitation.bind(this)
         this.handleClose = this.handleClose.bind(this)
@@ -337,7 +341,8 @@ const mdtp = dispatch => ({
     saveUsername: username => dispatch(saveUsername(username)),
     logout: () => dispatch(logout()),
     cleanMessageHistory: () => dispatch(cleanHistory()),
-    addToLastMessage: message => dispatch(addToLastMessage(message))
+    addToLastMessage: message => dispatch(addToLastMessage(message)),
+    removeBusyUsers: ids => dispatch(removeBusyUsers(ids))
 })
 
 Dashboard = withStyles(styles)(Dashboard)

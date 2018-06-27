@@ -11,8 +11,6 @@ const port = process.env.PORT || 3300;
 const server = app.listen(port, () => console.log('app is running on a port ' + port));
 const io = socket.listen(server);
 
-const rooms = {};
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
@@ -28,7 +26,7 @@ app.post('/api/username/check', (req, res) => {
 });
 
 app.get('/api/users/all', (req, res) => {
-    res.status(200).json({ users: UserList.getUsers() });            
+    res.status(200).json({ users: UserList.getAvailableUsers() });            
 });
 
 app.delete('/api/users/all', (req, res) => {
@@ -37,4 +35,4 @@ app.delete('/api/users/all', (req, res) => {
 
 app.get('*', (req, res) => res.send('not found'));
 
-initIO(io, rooms);
+initIO(io);

@@ -4,6 +4,14 @@ class User {
         this.id = id;
         this.isBusy = false;
     }
+
+    setIsBusy (busy) {
+        this.isBusy = busy;
+    }
+
+    isBusy () {
+        return this.isBusy;
+    } 
 }
 
 module.exports = User;

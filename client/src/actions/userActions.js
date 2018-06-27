@@ -18,4 +18,9 @@ export const removeUser = id => ({
     payload: id
 })
 
+export const removeBusyUsers = userIds => ({
+    type: 'REMOVE_BUSY_USERS',
+    payload: userIds
+})
+
 export const logout = () => ({ type: "LOG_OUT" })

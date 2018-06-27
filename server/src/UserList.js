@@ -4,6 +4,10 @@ class UserList {
         this.users = [];
     }
 
+    getAvailableUsers() {
+        return this.users.filter(user => !user.isBusy);
+    }
+
     getUsers() {
         return this.users;
     }

@@ -14,6 +14,7 @@ const subscribeToGameStart = cb => socket.on('game-start', options => cb(null, o
 const subscribeToDeclinedGame = cb => socket.on('declined-replay', () => cb(null))
 const subscribeToRestartGame = cb => socket.on('restart-game', () => cb(null))
 const subscribeToDisconnect = cb => socket.on('disconnected-user', () => cb(null))
+const subscribeToBusyUsers = cb => socket.on('busy-users', userIds => cb(null, userIds));
 
 //game subs
 const subscribeToMove = cb => socket.on('check-move', moveObj => cb(null, moveObj))
@@ -63,6 +64,7 @@ export {
     subscribeToDeclinedGame,
     subscribeToRestartGame,
     subscribeToDisconnect,
+    subscribeToBusyUsers,
     // game subs
     subscribeToMove,
     subscribeToSwitchTurn,

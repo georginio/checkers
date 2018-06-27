@@ -2,10 +2,11 @@ const Game = require('./src/Game');
 const User = require('./src/User');
 const allGames = require('./src/AllGames');
 const UserList = require('./src/UserList');
+const rooms = require('./src/Rooms');
 
-module.exports = (io, rooms) => {
+module.exports = io => {
 
-    io.on('connection', (socket) => {
+    io.on('connection', socket => {
 
         socket.join('main');
 
@@ -25,15 +26,15 @@ module.exports = (io, rooms) => {
             }
         });
 
-        socket.on('message', (message) => socket.to('main').broadcast.emit('message', message));
+        socket.on('message', message => socket.to('main').broadcast.emit('message', message));
 
-        socket.on('private-message', (message) => {
+        socket.on('private-message', message => {
             const game = allGames.findGame(socket.id);
             if (game) 
                 socket.to(game.roomname).broadcast.emit('private-message', message);
         });
 
-        socket.on('new-user', (username) => {
+        socket.on('new-user', username => {
             // send full user list to new socket before adding new socket to the list
             const index = UserList.findUserIndexByUsername(socket.id, username);
             
@@ -49,7 +50,7 @@ module.exports = (io, rooms) => {
         });
 
         // before game emitters 
-        socket.on('play-invitation', (invitation) => {
+        socket.on('play-invitation', invitation => {
             invitation.deliverer = socket.id;
             socket.to(invitation.id).emit('play-invitation', invitation);
         });
@@ -62,12 +63,12 @@ module.exports = (io, rooms) => {
                 player1: username,
                 player2: from
             };
+            
             socket.leave('main');
             socket.join(roomName);
             socket.to(id).emit('accepted-invitation', { from, roomName, deliverer: socket.id });
-
-            const game = new Game(deliverer, { username: from, id: socket.id }, roomName);
-            allGames.addGame(game);
+            
+            allGames.addGame(new Game(deliverer, { username: from, id: socket.id }, roomName));
         });
 
         socket.on('decline-invitation', (decline) => socket.to(decline.deliverer).emit('decline-invitation', decline));
@@ -77,21 +78,27 @@ module.exports = (io, rooms) => {
             socket.join(roomName);
             // strange way to give sides to players
             io.to(roomName).emit('game-start', { roomName, 'secondPlayer': username });
-        })
+
+            const socketIds = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
+            socketIds.forEach(socketId => {
+                UserList.getUsers().forEach(user => {
+                    if (user.id === socketId) 
+                        user.setIsBusy(true);
+                });
+            });
+            io.to('main').emit('busy-users', socketIds);
+        });
 
         // after end game emitters
-        socket.on('accept-replay', (id) => {
+        socket.on('accept-replay', id => {
             const game = allGames.findGame(id);
             if (game)
                 io.to(game.roomname).emit('restart-game')
         })
 
-        socket.on('decline-replay', (id) => {
+        socket.on('decline-replay', () => {
             socket.broadcast.emit('declined-replay');
             const index = allGames.findGameIndex(socket.id);
-            
-            // let client = io.sockets.adapter.rooms;
-            // let io = io.sockets.connected;
             
             if (index > -1) {
                 const roomname = allGames.getRoomName(index);
@@ -107,28 +114,26 @@ module.exports = (io, rooms) => {
                     }
                 });
 
-                // socket.leave(roomname);
-                // socket.join('main');
                 allGames.removeGame(index);
             }
         });
         
         // listen for game emitters
-        socket.on('check-move', (destination) => {
+        socket.on('check-move', destination => {
             const roomname = allGames.getRoomNameById(socket.id);
             
             if (roomname) 
                 socket.to(roomname).broadcast.emit('check-move', destination);
         });
 
-        socket.on('switch-turn', (turn) => {
+        socket.on('switch-turn', turn => {
             const roomname = allGames.getRoomNameById(socket.id);
 
             if (roomname) 
                 socket.to(roomname).broadcast.emit('switch-turn', turn);
         });
 
-        socket.on('end-game', (winner) => {
+        socket.on('end-game', winner => {
             const roomname = allGames.getRoomNameById(socket.id);
 
             if (roomname)
