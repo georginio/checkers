@@ -12,7 +12,7 @@ const styles = {
         gridTemplateRows: 'repeat(8, 12.5%)',
         justifySelf: 'center',
         alignSelf: 'center',
-        '@media all and (max-width: 1120px)': {
+        '@media all and (max-width: 1120px), all and (max-height: 800px)': {
             height: '640px',
             width: '640px'
         },
