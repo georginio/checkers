@@ -63,7 +63,8 @@
     "build-client": "node scripts/build.js",
     "test-client": "node scripts/test.js --env=jsdom",
     "eject-client": "node scripts/eject.js",
-    "dev:server": "cd server && nodemon app.js"
+    "dev:server": "cd server && nodemon app.js",
+    "start": "cd server && node app.js"
   },
   "jest": {
     "collectCoverageFrom": [
