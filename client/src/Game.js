@@ -28,8 +28,8 @@ import {
     cleanHistory 
 } from './actions/messageActions'
 
-import fastEndState from './data/fastEndState'
-// import defaultState from './data/defaultState'
+// import fastEndState from './data/fastEndState'
+import defaultState from './data/defaultState'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
@@ -61,7 +61,7 @@ class Game extends Component {
         super(props)
 
         this.state = {
-            squares: subMap(fastEndState),
+            squares: subMap(defaultState),
             turn: PLAYER_1,
             turnBy: '',
             suggestedSquares: [],
@@ -106,7 +106,7 @@ class Game extends Component {
             this.handleClose()
             this.initProps()
 
-            let squares = this._initBoard(subMap(fastEndState))
+            let squares = this._initBoard(subMap(defaultState))
             this.setState({ squares })
         })
 
@@ -799,7 +799,7 @@ class Game extends Component {
 
             if (this.killTarget.length === 0) {
 
-                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {
+                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {3300
 
                     let suggested = squares[leftTop.currentRow][leftTop.currentColumn]; 
 
