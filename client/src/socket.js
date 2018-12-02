@@ -2,13 +2,14 @@ import openSocket from 'socket.io-client'
 
 const PORT = process.env.PORT || 3300
 let URL = null
-
+debugger
 if (process.env.NODE_ENV === 'production') {
     URL = `https://reactcheckers.herokuapp.com`
     console.log('URL is ', URL, 'from if');
 } else {
     URL = `http://localhost:${PORT}`
 }
+debugger
 
 console.log('URL is ', URL);
     
