@@ -4,7 +4,7 @@ const PORT = process.env.PORT || 3300
 let URL = null
 
 if (process.env.NODE_ENV === 'production') 
-	URL = `https://reactcheckers.herokuapp.com:${PORT}`
+	URL = `https://reactcheckers.herokuapp.com`
 else
     URL = `http://localhost:${PORT}`
     
