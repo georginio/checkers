@@ -1,19 +1,7 @@
 import openSocket from 'socket.io-client'
+import config from './config'
 
-const PORT = process.env.PORT || 3300
-let URL = null
-debugger
-if (process.env.NODE_ENV === 'production') {
-    URL = `https://reactcheckers.herokuapp.com`
-    console.log('URL is ', URL, 'from if');
-} else {
-    URL = `http://localhost:${PORT}`
-}
-debugger
-
-console.log('URL is ', URL);
-    
-const socket = openSocket(URL)   
+const socket = openSocket(config.SOCKET_URL)   
 
 // subscribers
 const subscribeToMessage = cb => socket.on('message', message => cb(null, message))

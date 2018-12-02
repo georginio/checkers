@@ -1,13 +1,9 @@
 import axios from 'axios'
-
-let URL = ''
-if (process.env.NODE_ENV !== 'production') {
-    URL = `http://localhost:3300`
-}
+import config from '../../../config'
 
 export const asyncValidate = values => 
     axios
-        .post(`${URL}/api/username/check`, { username: values.username })
+        .post(`${config.ROOT_URL}/api/username/check`, { username: values.username })
         .then(result => {
             if (result.data.exists)
                 // eslint-disable-next-line
