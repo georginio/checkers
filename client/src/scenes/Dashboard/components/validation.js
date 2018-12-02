@@ -2,7 +2,7 @@ import axios from 'axios'
 
 let URL = ''
 if (process.env.NODE_ENV !== 'production') {
-    URL = `http://localhost:${PORT}`
+    URL = `http://localhost:3300`
 }
 
 export const asyncValidate = values => 
