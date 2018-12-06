@@ -4,8 +4,8 @@ import { withStyles } from 'material-ui/styles'
 import IconButton from 'material-ui/IconButton'
 import PlayArrow from 'material-ui-icons/PlayArrow'
 
-import TypographyTheme from './TypographyTheme'
-import LoadingHOC from './LoadinHOC'
+import TypographyTheme from '../TypographyTheme'
+import LoadingHOC from '../../HOCs/LoadingHOC'
 
 const styles = {
     root: {
@@ -29,11 +29,11 @@ const styles = {
     }
 }
 
-const ActiveUserList = ({ users, classes, emitInvitation }) =>
+const UserList = ({ users, classes, emitInvitation }) =>
     <div className={classes.root}>
         <h3 className={classes.heading}>Available users</h3>
         <List className={classes.list}>
-            {users.map(({ id, username }, index) => 
+            {users.map(({ id, username }) => 
                 <ListItem 
                     key={id}
                     button
@@ -56,4 +56,4 @@ const ActiveUserList = ({ users, classes, emitInvitation }) =>
         </List>
     </div>
 
-export default LoadingHOC(withStyles(styles)(ActiveUserList))
+export default LoadingHOC(withStyles(styles)(UserList))

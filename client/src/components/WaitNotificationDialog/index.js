@@ -1,10 +1,10 @@
 import React from 'react'
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from 'material-ui/styles'
 import Dialog, {
   DialogContent,
   DialogTitle
 } from 'material-ui/Dialog'
-import { LinearProgress } from 'material-ui/Progress';
+import { LinearProgress } from 'material-ui/Progress'
 
 const styles = {
     root: {
@@ -26,3 +26,4 @@ const WaitNotificationDialog = ({ classes, open, title = "Invitation Sent", prog
     </Dialog>
 
 export default withStyles(styles)(WaitNotificationDialog)
+

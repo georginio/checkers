@@ -4,12 +4,10 @@ import { withStyles } from 'material-ui/styles'
 import { connect } from 'react-redux'
 import { reset } from 'redux-form'
 
-import MessageList from './components/MessageList'
-import MessageForm from './components/MessageForm'
+import MessageList from '../MessageList'
+import MessageForm from '../MessageForm'
 
-import { 
-    emitMessage
-} from '../../socket'
+import { emitMessage } from '../../socket'
 
 import { saveMessage, addToLastMessage } from '../../actions/messageActions'
 

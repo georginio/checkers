@@ -6,9 +6,9 @@ import { withStyles } from 'material-ui/styles'
 import ChatIcon from 'material-ui-icons/Chat'
 import Send from 'material-ui-icons/Send'
 
-import RenderedTextField from '../../RenderedTextField'
+import Input from '../Input'
 
-const styles = theme => ({
+const styles = () => ({
     form: {
         display: 'flex',
         justifyContent: 'space-around',
@@ -37,7 +37,7 @@ let MessageForm =
             <div className={classes.icon}>
                 <ChatIcon />
             </div>
-            <Field name="message" label="message" component={RenderedTextField} />
+            <Field name="message" label="message" component={Input} />
             <Button 
                 variant="fab" 
                 color="primary" 

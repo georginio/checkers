@@ -33,9 +33,9 @@ import defaultState from './data/defaultState'
 
 import Board from './scenes/Board';
 import Description from './scenes/Description';
-import NotificationDialog from './components/Dialogs/NotificationDialog'
-import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
-import GameHOC from './components/GameHOC'
+import NotificationDialog from './components/NotificationDialog'
+import WaitNotificationDialog from './components/WaitNotificationDialog'
+import GameHOC from './HOCs/GameHOC'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
@@ -799,7 +799,7 @@ class Game extends Component {
 
             if (this.killTarget.length === 0) {
 
-                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {3300
+                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {
 
                     let suggested = squares[leftTop.currentRow][leftTop.currentColumn]; 
 

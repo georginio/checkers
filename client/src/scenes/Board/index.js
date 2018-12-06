@@ -1,5 +1,5 @@
 import React from 'react'
-import Square from './components/Square/index'
+import Square from '../../components/Square'
 import { withStyles } from 'material-ui/styles'
 
 const styles = { 

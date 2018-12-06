@@ -1,13 +1,13 @@
 import React from 'react'
 import Button from 'material-ui/Button'
-import { withStyles } from 'material-ui/styles';
+import { withStyles } from 'material-ui/styles'
 import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle
 } from 'material-ui/Dialog'
-import { LinearProgress } from 'material-ui/Progress';
+import { LinearProgress } from 'material-ui/Progress'
 
 const styles = {
     root: {

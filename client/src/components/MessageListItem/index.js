@@ -30,7 +30,7 @@ let styles = {
     }
 }
 
-const RenderListItem = ({ username, text, classes }) => {
+const MessageListItem = ({ username, text, classes }) => {
     return (
         <div className={classes.root}>
             <strong className={classes.username}>{username}</strong>
@@ -43,4 +43,4 @@ const RenderListItem = ({ username, text, classes }) => {
     )
 }
 
-export default withStyles(styles)(RenderListItem);
+export default withStyles(styles)(MessageListItem)

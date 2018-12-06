@@ -1,8 +1,6 @@
 import React from 'react'
-import { withStyles } from 'material-ui/styles';
-import Dialog, {
-  DialogTitle
-} from 'material-ui/Dialog'
+import { withStyles } from 'material-ui/styles'
+import Dialog, { DialogTitle } from 'material-ui/Dialog'
 
 const styles = {
     root: {
@@ -11,7 +9,7 @@ const styles = {
     }
 }
 
-const AlertDialog = ({ classes, open, handleClose, content }) =>
+const AlertDialog = ({ open, handleClose, content }) =>
     <Dialog
         open={open}
         onClose={handleClose}

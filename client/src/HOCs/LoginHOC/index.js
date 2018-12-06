@@ -1,7 +1,7 @@
 import { Grid, Col, Row } from 'react-flexbox-grid'
 import React, { Component } from 'react'
 
-import Form from '../Form'
+import LoginForm from '../../components/LoginForm'
 
 const styles = {
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -19,7 +19,7 @@ const FormHOC = WrappedComponent =>
                         <Grid>
                             <Row middle="xs" center="xs">
                                 <Col xs={6}>
-                                    <Form {...this.props} /> 
+                                    <LoginForm {...this.props} /> 
                                 </Col>
                             </Row>
                         </Grid>

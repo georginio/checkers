@@ -17,7 +17,6 @@ const styles = theme => ({
     }
 })
   
-
 const LoadingHOC = WrappedComponent => {
     
     class LoadingHOC extends Component {

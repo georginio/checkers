@@ -39,12 +39,12 @@ import {
     unsubscribeFrom
 } from '../../socket'
 
-import ActiveUserList from './components/ActiveUserList/ActiveUserList'
-import Chat from '../../components/Chat/Chat'
-import FormHOC from './components/FormHOC/FormHOC' 
-import NotificationDialog from '../../components/Dialogs/NotificationDialog'
-import WaitNotificationDialog from '../../components/Dialogs/WaitNotificationDialog'
-import AlertDialog from '../../components/Dialogs/AlertDialog'
+import UserList from '../../components/UserList'
+import Chat from '../../components/Chat'
+import LoginHOC from '../../HOCs/LoginHOC' 
+import NotificationDialog from '../../components/NotificationDialog'
+import WaitNotificationDialog from '../../components/WaitNotificationDialog'
+import AlertDialog from '../../components/AlertDialog'
 
 const styles = {
     dashboard: {
@@ -295,7 +295,7 @@ class Dashboard extends Component {
                     <Col xs={12}>
                         <Row center="xs" >
                             <Col xs={3}>
-                                <ActiveUserList 
+                                <UserList 
                                     emitInvitation={this.emitInvitation} 
                                     users={this.props.activeUsers} 
                                 />
@@ -349,4 +349,4 @@ const mdtp = dispatch => ({
 
 Dashboard = withStyles(styles)(Dashboard)
 
-export default connect(mstp, mdtp)(withRouter(FormHOC(Dashboard)))
+export default connect(mstp, mdtp)(withRouter(LoginHOC(Dashboard)))

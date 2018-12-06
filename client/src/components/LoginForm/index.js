@@ -4,10 +4,10 @@ import { connect } from 'react-redux'
 
 import { withStyles } from 'material-ui/styles'
 import Button from 'material-ui/Button'
-import RenderedTextField from '../../../components/RenderedTextField'
+import Input from '../Input'
 
 import { asyncValidate, validate } from './validation'
-import { saveUsername } from '../../../actions/userActions'
+import { saveUsername } from '../../actions/userActions'
 
 const styles = {
     button: {
@@ -21,7 +21,7 @@ const styles = {
     }
 } 
 
-class Form extends Component {
+class LoginForm extends Component {
 
     constructor(props) {
         super(props)
@@ -47,7 +47,7 @@ class Form extends Component {
         return (
             <form onSubmit={handleSubmit(this.submitUsername)} name="usernameForm" className={classes.form}>
                 <h3>Please type your Username!</h3>
-                <Field name="username" label="Username" component={RenderedTextField} />
+                <Field name="username" label="Username" component={Input} />
                 <Button 
                     type="submit"
                     className={classes.button} 
@@ -65,11 +65,11 @@ const dispatchToProps = dispatch => ({
     saveUsername: username => dispatch(saveUsername(username))
 })
 
-Form = withStyles(styles)(Form)
-Form = reduxForm({
+LoginForm = withStyles(styles)(LoginForm)
+LoginForm = reduxForm({
     form: 'usernameForm',
     validate,
     asyncValidate
-})(Form)
+})(LoginForm)
 
-export default connect(null, dispatchToProps)(Form) 
+export default connect(null, dispatchToProps)(LoginForm) 

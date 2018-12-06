@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { withStyles } from 'material-ui/styles'
 
-import Chat from '../../components/Chat/Chat'
+import Chat from '../../components/Chat'
 
 const styles = {
     turn: {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { withStyles } from 'material-ui/styles'
 
-import Check from '../Check/index';
+import Check from '../Check';
 
 const styles = {
     square: {

@@ -2,7 +2,7 @@ import React from 'react'
 import List, { ListItem } from 'material-ui/List'
 import { withStyles } from 'material-ui/styles'
 
-import RenderListItem from './RenderListItem'
+import MessageListItem from '../MessageListItem'
 
 const styles = {
     root: {
@@ -20,7 +20,7 @@ const MessageList = ({ classes, messages }) => {
                     key={index} 
                     username={username} 
                     text={text} 
-                    component={RenderListItem} 
+                    component={MessageListItem} 
                 />)
             }
         </List>
