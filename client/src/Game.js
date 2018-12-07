@@ -32,10 +32,10 @@ import {
 import defaultState from './data/defaultState'
 
 import Board from './scenes/Board';
-import Description from './scenes/Description';
-import NotificationDialog from './components/Dialogs/NotificationDialog'
-import WaitNotificationDialog from './components/Dialogs/WaitNotificationDialog'
-import GameHOC from './components/GameHOC'
+import Sidebar from './components/Sidebar';
+import NotificationDialog from './components/NotificationDialog'
+import WaitNotificationDialog from './components/WaitNotificationDialog'
+import GameHOC from './HOCs/GameHOC'
 
 const PLAYER_1 = 'Player 1';
 const PLAYER_2 = 'Player 2';
@@ -83,10 +83,6 @@ class Game extends Component {
             white: 12,
             black: 12
         }
-
-        this.handleCheckClick = this.handleCheckClick.bind(this)
-        this.handleSquareClick = this.handleSquareClick.bind(this)
-        this.isSuggested = this.isSuggested.bind(this)
 
         subscribeToMove((err, move) => this._opponentMove(move))
     
@@ -152,7 +148,7 @@ class Game extends Component {
         this.props.cleanChatHistory()
     }
 
-    initProps () {
+    initProps = () => {
         this.activeColumn = null
         this.activeRow = null
 
@@ -181,7 +177,7 @@ class Game extends Component {
         this._endGame()
     }
 
-    handleClose() {
+    handleClose = () => {
         this.setState({ 
             playNotifOpen: false,
             waitNotifOpen: false,
@@ -192,7 +188,7 @@ class Game extends Component {
         clearInterval(this.time)
     }
     
-    handleOpen(title, message) {
+    handleOpen = (title, message) => {
         this.setState({ 
             playNotifOpen: true,
             notificationTitle: title,
@@ -202,7 +198,7 @@ class Game extends Component {
         this.time = setInterval(this._progress, 500)
     }
 
-    handleWaitOpen(title) {
+    handleWaitOpen = (title) => {
         this.setState({ 
             waitNotifOpen: true,
             notificationTitle: title
@@ -211,7 +207,7 @@ class Game extends Component {
         this.time = setInterval(this._progress, 500)
     }
 
-    handleCheckClick(e, row, column) {
+    handleCheckClick = (e, row, column) => {
         e.stopPropagation();
         let { play } = this.props
 
@@ -237,18 +233,18 @@ class Game extends Component {
         }
     }
 
-    handleSquareClick (e, row, column) {
+    handleSquareClick = (e, row, column) => {
         if (this.mustMove && this.isSuggested(row, column) && this.state.squares[this.activeRow][this.activeColumn].player === this.props.play.turn)
             this._move(row, column)
     }
 
-    isSuggested(row, column) {
+    isSuggested = (row, column) => {
         return this.state.suggestedSquares.find(
             (square) => row === square.row && column === square.column && !this.state.squares[row][column].player
         ) ? true : false;
     }
 
-    _addKillTarget(target) {
+    _addKillTarget = (target) => {
         this.killTarget.push(target);
     }
 
@@ -273,7 +269,7 @@ class Game extends Component {
         return play.side
     }
 
-    _checkForLeftTopKill(squares, suggestedSquares, row, column) {
+    _checkForLeftTopKill = (squares, suggestedSquares, row, column) => {
 
         
         let currentRow = row - 1; 
@@ -331,7 +327,7 @@ class Game extends Component {
         }
     }
 
-    _checkForRightTopKill(squares, suggestedSquares, row, column) {
+    _checkForRightTopKill = (squares, suggestedSquares, row, column) => {
         
         let currentRow = row - 1;
         let currentColumn = column + 1;
@@ -389,7 +385,7 @@ class Game extends Component {
         }
     }
 
-    _checkForLeftBottomKill(squares, suggestedSquares, row, column) {
+    _checkForLeftBottomKill = (squares, suggestedSquares, row, column) => {
         
         let currentRow = row + 1; 
         let currentColumn = column - 1;
@@ -445,7 +441,7 @@ class Game extends Component {
         }
     }
 
-    _checkForRightBottomKill(squares, suggestedSquares, row, column) {
+    _checkForRightBottomKill = (squares, suggestedSquares, row, column) => {
         
         let currentRow = row + 1; 
         let currentColumn = column + 1;
@@ -503,7 +499,7 @@ class Game extends Component {
         }
     }
 
-    _checkForFirstPlayerKingKill(squares, suggestedSquares, row, column) {
+    _checkForFirstPlayerKingKill = (squares, suggestedSquares, row, column) => {
         if (row < 6 && column >= 0 && column < 6 && squares[row + 1][column + 1].player && squares[row + 1][column + 1].player !== this.props.play.turn && !squares[row + 2][column + 2].player) 
             this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column + 1, row + 2, column + 2);
         if (row < 6 && column > 1 && column <= 7 && squares[row + 1][column - 1].player && squares[row + 1][column - 1].player !== this.props.play.turn && !squares[row + 2][column - 2].player) 
@@ -525,7 +521,7 @@ class Game extends Component {
             this._increaseTargetsAndSquares(squares, suggestedSquares, row + 1, column + 1, row + 2, column + 2);
     }
     // increase kill targets' and suggested squares' quantity 
-    _increaseTargetsAndSquares(squares, suggestedSquares, targetRowPos, targetColPos, squareRowPos, squareColPos) {
+    _increaseTargetsAndSquares = (squares, suggestedSquares, targetRowPos, targetColPos, squareRowPos, squareColPos) => {
         this._addKillTarget({ 
             row: targetRowPos, 
             column: targetColPos 
@@ -533,7 +529,7 @@ class Game extends Component {
         suggestedSquares.push(squares[squareRowPos][squareColPos]);
     }
 
-    _checkForKill(squares, row, column) {
+    _checkForKill = (squares, row, column) => {
 
         let suggestedSquares = []
 
@@ -551,14 +547,14 @@ class Game extends Component {
         return suggestedSquares
     }
 
-    _checkForKing(checker) {
+    _checkForKing = (checker) => {
         if (checker.player === PLAYER_1 && checker.row === 7)
             checker.king = true;
         else if (checker.player === PLAYER_2 && checker.row === 0)
             checker.king = true;
     }
 
-    _deactivateAllchecks(squares) {
+    _deactivateAllchecks = (squares) => {
 
         for (let i = 0; i < squares.length; i++) {
             for (let j = 0; j < squares.length; j++) {
@@ -604,7 +600,7 @@ class Game extends Component {
             this.handleWaitOpen("You win, please wait for second!")
     }
 
-    _killProperCheck (startRow, startColumn, endRow, endColumn) {
+    _killProperCheck = (startRow, startColumn, endRow, endColumn) => {
         let targetIndex = this.killTarget.findIndex((target, index) => {
             return (startRow < target.row && endRow > target.row && startColumn < target.column && endColumn > target.column) ||
                 (startRow < target.row && endRow > target.row && startColumn > target.column && endColumn < target.column) ||
@@ -615,7 +611,7 @@ class Game extends Component {
         return targetIndex;
     }
     
-    _move(row, column) {
+    _move = (row, column) => {
         let squares = this.state.squares.slice();
         let activeChecker = squares[this.activeRow][this.activeColumn];
         let suggestedSquares = [];
@@ -710,11 +706,11 @@ class Game extends Component {
             this.setState({ progressCompleted: progressCompleted + 4 })
     }
 
-    _resetKillTarget() {
+    _resetKillTarget = () => {
         this.killTarget = [];
     }
 
-    _initBoard(initSquares) {
+    _initBoard = (initSquares) => {
 
         let squares = initSquares || this.state.squares.slice() 
 
@@ -739,7 +735,7 @@ class Game extends Component {
         return squares
     }
 
-    _suggestSquares(row, column, activeChecker, squaresArray, ignoreKillTarget) {
+    _suggestSquares = (row, column, activeChecker, squaresArray, ignoreKillTarget) => {
         let suggestedSquares = []
         let squares = squaresArray
         
@@ -799,7 +795,7 @@ class Game extends Component {
 
             if (this.killTarget.length === 0) {
 
-                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {3300
+                while (leftTop.currentRow >= 0 && leftTop.currentColumn >= 0) {
 
                     let suggested = squares[leftTop.currentRow][leftTop.currentColumn]; 
 
@@ -858,7 +854,7 @@ class Game extends Component {
 
     }
     
-    _switchTurn (squares) {
+    _switchTurn = () => {
         let turn = (this.props.play.turn === PLAYER_1) ? PLAYER_2 : PLAYER_1
         emitSwitchTurn(turn)
         this._defineTurnBy(turn)
@@ -870,7 +866,7 @@ class Game extends Component {
 
         return (
             <div className={classes.game}>
-                <Description turn={this.state.turnBy} />
+                <Sidebar turn={this.state.turnBy} />
                 <Board 
                     squares={this.state.squares} 
                     suggestedSquares={this.state.suggestedSquares}

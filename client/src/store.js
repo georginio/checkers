@@ -7,7 +7,7 @@ import usersReducer from './reducers/usersReducer'
 import messageReducer from './reducers/messageReducer'
 import playReducer from './reducers/playReducer'
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
 const reducers = combineReducers({
     username: usernameReducer,

@@ -1,7 +1,7 @@
 import openSocket from 'socket.io-client'
 import config from './config'
 
-const socket = openSocket(config.SOCKET_URL)   
+const socket = openSocket(config.ROOT_URL)   
 
 // subscribers
 const subscribeToMessage = cb => socket.on('message', message => cb(null, message))
