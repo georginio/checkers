@@ -3,6 +3,7 @@ import List, { ListItem, ListItemText, ListItemSecondaryAction } from 'material-
 import { withStyles } from 'material-ui/styles'
 import IconButton from 'material-ui/IconButton'
 import PlayArrow from 'material-ui-icons/PlayArrow'
+import { compose } from 'recompose'
 
 import TypographyTheme from '../TypographyTheme'
 import LoadingHOC from '../../HOCs/LoadingHOC'
@@ -56,4 +57,7 @@ const UserList = ({ users, classes, emitInvitation }) =>
         </List>
     </div>
 
-export default LoadingHOC(withStyles(styles)(UserList))
+export default compose(
+    LoadingHOC,
+    withStyles(styles)
+)(UserList)

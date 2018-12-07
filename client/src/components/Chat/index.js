@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { withStyles } from 'material-ui/styles'
 import { connect } from 'react-redux'
 import { reset } from 'redux-form'
+import { compose } from 'recompose'
 
 import MessageList from '../MessageList'
 import MessageForm from '../MessageForm'
@@ -78,4 +79,7 @@ const mdtp = dispatch => ({
     addToLastMessage: message => dispatch(addToLastMessage(message))
 })
 
-export default connect(mstp, mdtp)(withStyles(styles)(Chat))
+export default compose(
+    connect(mstp, mdtp),
+    withStyles(styles)
+)(Chat)

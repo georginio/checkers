@@ -2,7 +2,7 @@ import React from 'react'
 import { Field, reduxForm } from 'redux-form'
 import Button from 'material-ui/Button'
 import { withStyles } from 'material-ui/styles'
-
+import { compose } from 'recompose'
 import ChatIcon from 'material-ui-icons/Chat'
 import Send from 'material-ui-icons/Send'
 
@@ -50,6 +50,9 @@ let MessageForm =
             </Button>
         </form>
 
-export default withStyles(styles)(reduxForm({
-    form: 'messageForm',
-})(MessageForm))
+export default compose(
+    reduxForm({
+        form: 'messageForm'
+    }),
+    withStyles(styles)
+)(MessageForm)

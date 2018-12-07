@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Field, reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
+import { compose } from 'recompose'
 
 import { withStyles } from 'material-ui/styles'
 import Button from 'material-ui/Button'
@@ -36,7 +37,7 @@ class LoginForm extends Component {
 
     render () {
         
-        let { 
+        const { 
             handleSubmit, 
             classes, 
             pristine, 
@@ -65,11 +66,12 @@ const dispatchToProps = dispatch => ({
     saveUsername: username => dispatch(saveUsername(username))
 })
 
-LoginForm = withStyles(styles)(LoginForm)
-LoginForm = reduxForm({
-    form: 'usernameForm',
-    validate,
-    asyncValidate
-})(LoginForm)
-
-export default connect(null, dispatchToProps)(LoginForm) 
+export default compose(
+    connect(null, dispatchToProps),
+    reduxForm({
+        form: 'usernameForm',
+        validate,
+        asyncValidate
+    }),
+    withStyles(styles)
+)(LoginForm)

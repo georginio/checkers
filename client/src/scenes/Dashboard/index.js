@@ -5,6 +5,7 @@ import { Grid, Row, Col } from 'react-flexbox-grid'
 import { withRouter } from 'react-router-dom'
 import PowerSettingsNew from 'material-ui-icons/PowerSettingsNew'
 import Button from 'material-ui/Button'
+import { compose } from 'recompose'
 
 import { 
     saveActiveUsers, 
@@ -167,10 +168,6 @@ class Dashboard extends Component {
 
         subscribeToBusyUsers((err, ids) => this.props.removeBusyUsers(ids))
 
-        this.emitInvitation = this.emitInvitation.bind(this)
-        this.handleClose = this.handleClose.bind(this)
-        this.handleOpen = this.handleOpen.bind(this)
-        this.handleWaitOpen = this.handleWaitOpen.bind(this)
     }
 
     componentDidMount() {
@@ -196,7 +193,7 @@ class Dashboard extends Component {
         ])
     }
 
-    handleOpen(message) {
+    handleOpen = message => {
         this.setState({ 
             playNotifOpen: true,
             notifContext: message 
@@ -205,7 +202,7 @@ class Dashboard extends Component {
         this.time = setInterval(this.progress, 500)
     }
 
-    handleWaitOpen() {
+    handleWaitOpen = () => {
         this.setState({ 
             waitNotifOpen: true,
             progressCompleted: 0 
@@ -214,7 +211,7 @@ class Dashboard extends Component {
         this.time = setInterval(this.progress, 500)
     }
 
-    handleClose() {
+    handleClose = () => {
         this.setState({ 
             playNotifOpen: false,
             waitNotifOpen: false,
@@ -225,7 +222,7 @@ class Dashboard extends Component {
         clearInterval(this.time)
     }
 
-    emitInvitation(id, username) {
+    emitInvitation = id => {
         emitInvitation({ 
             id, 
             from: this.props.username  
@@ -347,6 +344,9 @@ const mdtp = dispatch => ({
     removeBusyUsers: ids => dispatch(removeBusyUsers(ids))
 })
 
-Dashboard = withStyles(styles)(Dashboard)
-
-export default connect(mstp, mdtp)(withRouter(LoginHOC(Dashboard)))
+export default compose(
+    connect(mstp, mdtp),
+    withRouter,
+    LoginHOC,
+    withStyles(styles)
+)(Dashboard)

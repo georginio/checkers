@@ -40,18 +40,16 @@ const Board = ({ classes, squares, isSuggested, onCheckClick, onSquareClick, sid
 
             let props = squares[i][j]
             let key= null
-            let suggested = false
-            if (!props) return null
             
-            if (isSuggested(props.row, props.column))
-                suggested = true
+            if (!props) 
+                return null
                 
             key = 'i' + i + 'j' + j
             
             let square = (<Square 
                 {...props}
                 key={key}
-                suggested={suggested}
+                suggested={isSuggested(props.row, props.column)}
                 side={side}
                 onCheckClick={onCheckClick}
                 onSquareClick={onSquareClick}
@@ -62,10 +60,7 @@ const Board = ({ classes, squares, isSuggested, onCheckClick, onSquareClick, sid
     }
 
     return (
-        <div 
-            className={classes.board}
-            style={rotationStyle}
-        >
+        <div className={classes.board} style={rotationStyle}>
             {renderSquares}
         </div>
     )
