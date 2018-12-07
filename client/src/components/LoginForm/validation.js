@@ -3,7 +3,7 @@ import config from '../../config'
 
 export const asyncValidate = values => 
     axios
-        .post(`${config.SOCKET_URL}/api/username/check`, { username: values.username })
+        .post(`${config.ROOT_URL}/api/username/check`, { username: values.username })
         .then(result => {
             if (result.data.exists)
                 // eslint-disable-next-line
