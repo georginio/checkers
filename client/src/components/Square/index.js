@@ -1,7 +1,9 @@
 import React from 'react';
 import { withStyles } from 'material-ui/styles'
 
-import Check from '../Check';
+import Check from '../Check'
+
+import { defineSideColor } from '../../utils/common'
 
 const styles = {
     square: {
@@ -14,14 +16,7 @@ const styles = {
 
 const Square = ({ classes, turn, active, row, column, onCheckClick, onSquareClick, suggested, king, side }) => {
     let check = null;
-    let checkColor = null;
-
-    if (turn === 'Player 1') {
-        checkColor = '#F1F1FF';
-    } else if (turn === 'Player 2') {
-        checkColor = '#e35568'
-    }
-
+    let checkColor = defineSideColor(turn);
     let color = ((row + column) % 2) === 0 ? '#ffffff' : '#453c7a';
    
     let styles = {

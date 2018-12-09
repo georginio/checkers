@@ -1,2 +1,4 @@
 # checkers
-online checkers built with node.js, socket.io, react,js
+online checkers built with: node, socket.io, react, material-ui
+#### [https://reactcheckers.herokuapp.com](https://reactcheckers.herokuapp.com)
+No need to SignUp/Register, just enter username

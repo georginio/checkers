@@ -547,14 +547,14 @@ class Game extends Component {
         return suggestedSquares
     }
 
-    _checkForKing = (checker) => {
+    _checkForKing = checker => {
         if (checker.player === PLAYER_1 && checker.row === 7)
             checker.king = true;
         else if (checker.player === PLAYER_2 && checker.row === 0)
             checker.king = true;
     }
 
-    _deactivateAllchecks = (squares) => {
+    _deactivateAllchecks = squares => {
 
         for (let i = 0; i < squares.length; i++) {
             for (let j = 0; j < squares.length; j++) {
@@ -568,7 +568,7 @@ class Game extends Component {
         } 
     }
 
-    _defineTurnBy = (turn) => {
+    _defineTurnBy = turn => {
         let { play } = this.props
         turn = turn || play.turn
 
@@ -866,7 +866,7 @@ class Game extends Component {
 
         return (
             <div className={classes.game}>
-                <Sidebar turn={this.state.turnBy} />
+                <Sidebar turn={this.props.play.turn} />
                 <Board 
                     squares={this.state.squares} 
                     suggestedSquares={this.state.suggestedSquares}

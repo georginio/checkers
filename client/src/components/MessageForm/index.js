@@ -15,12 +15,12 @@ const styles = () => ({
         padding: '8px'
     },
     button: {
-        margin: '8px 0 0 8px'
+        marginLeft: '8px'
     },
     icon: {
         alignSelf: 'center',
         color: '#5C6BC0',
-        margin: '8px 8px 0'
+        margin: '14px 8px 0'
     }
 }) 
 
